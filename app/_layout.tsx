@@ -28,8 +28,8 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(dashboard)" />
-      <Stack.Screen name="(admin)" />
+      <Stack.Screen name="dashboard" />
+      <Stack.Screen name="admin" />
       <Stack.Screen name="business/[slug]" />
       <Stack.Screen name="post/[id]" />
       <Stack.Screen name="user/[id]" />
