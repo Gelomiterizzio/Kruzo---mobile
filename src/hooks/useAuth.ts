@@ -1,8 +1,19 @@
 import { useCallback, useState } from 'react'
 import { useAuthContext } from '@/providers/AuthProvider'
-import { signInWithEmail, registerWithEmail, logout, resetPassword } from '@/services/auth'
+import {
+  signInWithEmail,
+  registerWithEmail,
+  logout,
+  resetPassword,
+  signInWithGoogleCredential,
+} from '@/services/auth'
+import { getGoogleIdToken, googleSignOut, GoogleSignInError } from '@/services/googleSignIn'
 
-export function parseFirebaseError(error: unknown): string {
+export function parseAuthError(error: unknown): string {
+  if (error instanceof GoogleSignInError) {
+    // 'cancelled' is handled by callers (no error surfaced); map the rest.
+    return error.message
+  }
   const msg = error instanceof Error ? error.message : String(error)
   if (
     msg.includes('user-not-found') ||
@@ -27,7 +38,20 @@ export function useAuth() {
     try {
       await signInWithEmail(email, password)
     } catch (e) {
-      setError(parseFirebaseError(e))
+      setError(parseAuthError(e))
+      throw e
+    }
+  }, [])
+
+  const loginGoogle = useCallback(async () => {
+    setError(null)
+    try {
+      const idToken = await getGoogleIdToken()
+      await signInWithGoogleCredential(idToken)
+    } catch (e) {
+      // A user-cancelled flow is not an error worth surfacing.
+      if (e instanceof GoogleSignInError && e.code === 'cancelled') return
+      setError(parseAuthError(e))
       throw e
     }
   }, [])
@@ -37,7 +61,7 @@ export function useAuth() {
     try {
       await registerWithEmail(email, password, name)
     } catch (e) {
-      setError(parseFirebaseError(e))
+      setError(parseAuthError(e))
       throw e
     }
   }, [])
@@ -48,14 +72,14 @@ export function useAuth() {
       await resetPassword(email)
       return true
     } catch (e) {
-      setError(parseFirebaseError(e))
+      setError(parseAuthError(e))
       return false
     }
   }, [])
 
   const signOut = useCallback(async () => {
     setError(null)
-    await logout()
+    await Promise.all([logout(), googleSignOut()])
   }, [])
 
   return {
@@ -68,6 +92,7 @@ export function useAuth() {
     isEntrepreneur: user?.role === 'entrepreneur' || user?.role === 'admin',
     isAdmin: user?.role === 'admin',
     loginEmail,
+    loginGoogle,
     register,
     sendReset,
     signOut,

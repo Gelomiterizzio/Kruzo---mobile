@@ -48,9 +48,11 @@ export async function uploadBusinessImages(
 ): Promise<string[]> {
   const urls: string[] = []
   for (let i = 0; i < uris.length; i++) {
-    const ext = uris[i].split('.').pop() ?? 'jpg'
+    const uri = uris[i]
+    if (!uri) continue
+    const ext = uri.split('.').pop() ?? 'jpg'
     const path = `businesses/${businessId}/${type}/${Date.now()}_${i}.${ext}`
-    const url = await uploadImageFromUri(uris[i], path, (p) => {
+    const url = await uploadImageFromUri(uri, path, (p) => {
       const overall = Math.round((i / uris.length + p / 100 / uris.length) * 100)
       onProgress?.(overall)
     })
@@ -66,9 +68,11 @@ export async function uploadPostImages(
 ): Promise<string[]> {
   const urls: string[] = []
   for (let i = 0; i < uris.length; i++) {
-    const ext = uris[i].split('.').pop() ?? 'jpg'
+    const uri = uris[i]
+    if (!uri) continue
+    const ext = uri.split('.').pop() ?? 'jpg'
     const path = `posts/${postId}/${Date.now()}_${i}.${ext}`
-    const url = await uploadImageFromUri(uris[i], path, (p) => {
+    const url = await uploadImageFromUri(uri, path, (p) => {
       onProgress?.(Math.round((i / uris.length + p / 100 / uris.length) * 100))
     })
     urls.push(url)

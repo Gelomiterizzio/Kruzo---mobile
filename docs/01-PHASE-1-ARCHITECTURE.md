@@ -11,7 +11,7 @@
 
 ## 1. Principios de arquitectura
 
-1. **Feature-first + capas limpias.** El código se organiza por *feature* (auth, business, post,
+1. **Feature-first + capas limpias.** El código se organiza por _feature_ (auth, business, post,
    review, favorite, dashboard, admin) y dentro de cada una por capa. Lo transversal vive en `src/`.
 2. **Regla de dependencias (unidireccional):**
    `app/ (rutas)` → `features/` → `components/ (DS) · hooks/ · services/ · store/ · utils/ · types/ · theme/`.
@@ -121,19 +121,19 @@ Reemplaza `middleware.ts` (web) por **guards declarativos en los `_layout.tsx` d
 el estado de `AuthProvider`. La autoridad real sigue siendo **las reglas de Firestore**; los guards solo
 mejoran la UX (ocultar/redirigir).
 
-| Grupo | Regla de acceso | Equivalente web |
-|---|---|---|
-| `(auth)` | Si hay sesión → redirige a `(tabs)` | middleware `AUTH_ONLY` |
-| `(tabs)` | Público (Home/Explore/Detalles). Favoritos/Perfil piden login para acciones | `(main)` |
-| `(dashboard)` | `appUser.role ∈ {entrepreneur, admin}`; si no, → `(tabs)` o `/login` | `PROTECTED` |
-| `(admin)` | `appUser.role === 'admin'`; si no, → `(tabs)` | `ADMIN_ONLY` + guard server |
+| Grupo         | Regla de acceso                                                             | Equivalente web             |
+| ------------- | --------------------------------------------------------------------------- | --------------------------- |
+| `(auth)`      | Si hay sesión → redirige a `(tabs)`                                         | middleware `AUTH_ONLY`      |
+| `(tabs)`      | Público (Home/Explore/Detalles). Favoritos/Perfil piden login para acciones | `(main)`                    |
+| `(dashboard)` | `appUser.role ∈ {entrepreneur, admin}`; si no, → `(tabs)` o `/login`        | `PROTECTED`                 |
+| `(admin)`     | `appUser.role === 'admin'`; si no, → `(tabs)`                               | `ADMIN_ONLY` + guard server |
 
 **Patrón de guard** (en cada `_layout` protegido): mientras `loading` → splash; si no cumple → `Redirect`.
 Sin sesión httpOnly, sin `/api/session`, sin SSR.
 
 **IA de navegación (premium, estilo Yelp/Airbnb):** tab bar inferior de 4 (Inicio · Explorar · Favoritos
 · Perfil). El acceso a Dashboard/Admin se hace desde **Perfil** (condicionado por rol), no como tab, para
-no contaminar la barra del usuario común. Detalles (negocio/post/usuario) son *stack screens* push.
+no contaminar la barra del usuario común. Detalles (negocio/post/usuario) son _stack screens_ push.
 
 **Deep linking / Share Sheet:** `scheme: "kruzo"` + universal links a `kruzo.bo`. Rutas enlazables:
 `business/[slug]`, `post/[id]`, `user/[id]`. `Share` nativo genera la URL canónica (paridad con
@@ -180,7 +180,7 @@ React Query; Zustand solo guarda estado de UI y el espejo optimista de favoritos
   datos sensibles adicionales (p. ej. flags). `onAuthChange` hidrata `appUser` desde Firestore y carga
   `favoriteIds` (igual que `AuthProvider` web).
 - **App Check:** Android → Play Integrity (opt-in). Antes de Fase 3 hay que verificar si Firestore tiene
-  *enforcement* activado; si lo está, registrar el proveedor o el cliente quedará bloqueado.
+  _enforcement_ activado; si lo está, registrar el proveedor o el cliente quedará bloqueado.
 
 ---
 
@@ -202,53 +202,53 @@ React Query; Zustand solo guarda estado de UI y el espejo optimista de favoritos
 
 ## 8. Subsistemas de plataforma
 
-| Subsistema | Web | Móvil (decisión) |
-|---|---|---|
-| Imágenes (upload) | `File` + dropzone | `expo-image-picker` → `fetch(uri).blob()` → `uploadBytesResumable` (mismas rutas, <5 MB) |
-| Mapa | Leaflet (HTML) | `react-native-maps` (Google Maps Android). Fallback a dirección si `coordinates == null` |
-| Ubicación | `useGeolocation` (web) | `expo-location` (permisos runtime) |
-| Compartir | `navigator.share` | `Share` / `expo-sharing` (URL canónica `kruzo.bo/...`) |
-| Contacto | `wa.me` + `tel:` | `Linking.openURL` (WhatsApp + tel), reusando `buildWhatsApp*URL` |
-| Push | "preparado" (sin envío) | `expo-notifications`: registrar token y persistirlo. **Envío FCM = backend nuevo → requiere aprobación** |
-| Tema persistente | `next-themes` | `useColorScheme` + Zustand/SecureStore |
+| Subsistema        | Web                     | Móvil (decisión)                                                                                         |
+| ----------------- | ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| Imágenes (upload) | `File` + dropzone       | `expo-image-picker` → `fetch(uri).blob()` → `uploadBytesResumable` (mismas rutas, <5 MB)                 |
+| Mapa              | Leaflet (HTML)          | `react-native-maps` (Google Maps Android). Fallback a dirección si `coordinates == null`                 |
+| Ubicación         | `useGeolocation` (web)  | `expo-location` (permisos runtime)                                                                       |
+| Compartir         | `navigator.share`       | `Share` / `expo-sharing` (URL canónica `kruzo.bo/...`)                                                   |
+| Contacto          | `wa.me` + `tel:`        | `Linking.openURL` (WhatsApp + tel), reusando `buildWhatsApp*URL`                                         |
+| Push              | "preparado" (sin envío) | `expo-notifications`: registrar token y persistirlo. **Envío FCM = backend nuevo → requiere aprobación** |
+| Tema persistente  | `next-themes`           | `useColorScheme` + Zustand/SecureStore                                                                   |
 
 ---
 
 ## 9. Mapa de portabilidad de archivos (web → móvil)
 
-| Origen `web/lib/...` | Destino `mobile/src/...` | Cambio |
-|---|---|---|
-| `types/{business,post,review,user}.ts` | `types/*` | **Copia literal** |
-| `utils/{formatters,validators,whatsapp,constants}.ts` | `utils/*`, `constants/*` | **Copia literal** (date-fns, zod) |
-| `firebase/config.ts` | `services/firebase.ts` | `initializeAuth` + persistencia RN |
-| `firebase/auth.ts` | `services/auth.ts` | Quitar session sync; Google nativo |
-| `firebase/firestore.ts` | `services/firestore.ts` | **~95% igual**; cursores idénticos |
-| `firebase/storage.ts` | `services/storage.ts` | `File`→`blob` desde URI |
-| `firebase/admin.ts`, `app/api/session` | — | **Eliminado** (server-only) |
-| `hooks/use{Businesses,Posts,Reviews,Favorites}.ts` | `hooks/*` | Lógica idéntica |
-| `store/useStore.ts` | `store/useStore.ts` | `persist` → AsyncStorage |
-| `providers/{Auth,Query,Theme}Provider` | `providers/*` | Reescritura RN |
-| `components/*` (Tailwind) | `components/` + `features/*` | **Reconstrucción UI**, misma semántica |
-| `middleware.ts` | guards en `(dashboard)/(admin)/_layout` | Reescritura cliente |
+| Origen `web/lib/...`                                  | Destino `mobile/src/...`                | Cambio                                 |
+| ----------------------------------------------------- | --------------------------------------- | -------------------------------------- |
+| `types/{business,post,review,user}.ts`                | `types/*`                               | **Copia literal**                      |
+| `utils/{formatters,validators,whatsapp,constants}.ts` | `utils/*`, `constants/*`                | **Copia literal** (date-fns, zod)      |
+| `firebase/config.ts`                                  | `services/firebase.ts`                  | `initializeAuth` + persistencia RN     |
+| `firebase/auth.ts`                                    | `services/auth.ts`                      | Quitar session sync; Google nativo     |
+| `firebase/firestore.ts`                               | `services/firestore.ts`                 | **~95% igual**; cursores idénticos     |
+| `firebase/storage.ts`                                 | `services/storage.ts`                   | `File`→`blob` desde URI                |
+| `firebase/admin.ts`, `app/api/session`                | —                                       | **Eliminado** (server-only)            |
+| `hooks/use{Businesses,Posts,Reviews,Favorites}.ts`    | `hooks/*`                               | Lógica idéntica                        |
+| `store/useStore.ts`                                   | `store/useStore.ts`                     | `persist` → AsyncStorage               |
+| `providers/{Auth,Query,Theme}Provider`                | `providers/*`                           | Reescritura RN                         |
+| `components/*` (Tailwind)                             | `components/` + `features/*`            | **Reconstrucción UI**, misma semántica |
+| `middleware.ts`                                       | guards en `(dashboard)/(admin)/_layout` | Reescritura cliente                    |
 
 ---
 
 ## 10. Pantallas → rutas (paridad con la auditoría)
 
-| Pantalla (web) | Ruta móvil | Notas |
-|---|---|---|
-| Home `/` | `(tabs)/index` | Hero + CategoryGrid + FeaturedSections |
-| Explore `/explore` | `(tabs)/explore` | Grid + filtros |
-| Search `/search` | (fusionada en `explore`) | **Filtros cat/zona; texto NO consulta backend** |
-| Trending `/trending` | `(tabs)/index` (sección) o `trending.tsx` | A decidir en Fase 3 |
-| Favorites `/favorites` | `(tabs)/favorites` | Requiere login |
-| Business `/business/[slug]` | `business/[slug]` | Tabs internos Publicaciones/Reseñas/Info/Mapa |
-| Post `/post/[id]` | `post/[id]` | CTA WhatsApp |
-| User `/user/[id]` | `user/[id]` | Perfil público |
-| Login/Register/Forgot | `(auth)/*` | — |
-| Settings / Notifications | `settings`, `notifications` | — |
-| Dashboard (8 vistas) | `(dashboard)/*` | Guard rol entrepreneur/admin |
-| Admin (6 vistas) | `(admin)/*` | Guard rol admin |
+| Pantalla (web)              | Ruta móvil                                | Notas                                           |
+| --------------------------- | ----------------------------------------- | ----------------------------------------------- |
+| Home `/`                    | `(tabs)/index`                            | Hero + CategoryGrid + FeaturedSections          |
+| Explore `/explore`          | `(tabs)/explore`                          | Grid + filtros                                  |
+| Search `/search`            | (fusionada en `explore`)                  | **Filtros cat/zona; texto NO consulta backend** |
+| Trending `/trending`        | `(tabs)/index` (sección) o `trending.tsx` | A decidir en Fase 3                             |
+| Favorites `/favorites`      | `(tabs)/favorites`                        | Requiere login                                  |
+| Business `/business/[slug]` | `business/[slug]`                         | Tabs internos Publicaciones/Reseñas/Info/Mapa   |
+| Post `/post/[id]`           | `post/[id]`                               | CTA WhatsApp                                    |
+| User `/user/[id]`           | `user/[id]`                               | Perfil público                                  |
+| Login/Register/Forgot       | `(auth)/*`                                | —                                               |
+| Settings / Notifications    | `settings`, `notifications`               | —                                               |
+| Dashboard (8 vistas)        | `(dashboard)/*`                           | Guard rol entrepreneur/admin                    |
+| Admin (6 vistas)            | `(admin)/*`                               | Guard rol admin                                 |
 
 ---
 

@@ -25,19 +25,19 @@ cliente del mismo backend**, sin crear base de datos, colecciones ni APIs nuevas
 
 ## 1. Arquitectura encontrada
 
-| Capa | Tecnología (versión real en `package.json`) | Notas |
-|---|---|---|
-| Framework | Next.js `16.2.7` (App Router, RSC) | `build` usa `--webpack` |
-| UI | React `19.2.0`, Tailwind `3.4.7`, `framer-motion` 12, `lucide-react` | Design tokens en CSS vars (HSL) |
-| Estado servidor | `@tanstack/react-query` `^5.75` | `useInfiniteQuery` para listas paginadas |
-| Estado cliente | `zustand` `^5` con `persist` | Solo persiste `localFavorites` |
-| Formularios | `react-hook-form` `^7.52` + `@hookform/resolvers` + `zod` `^3.23` | Esquemas en `lib/utils/validators.ts` |
-| Datos | `firebase` `^11.9` (Web SDK: Firestore, Auth, Storage, Analytics, App Check) | Singleton en `lib/firebase/config.ts` |
-| Backend autoritativo | `firebase-admin` `^13.10` + **Cloud Functions v2** (`functions/`) | Sesión httpOnly + agregación de contadores |
-| Mapas | `leaflet` `^1.9` (sin react-leaflet) | Popups HTML escapados (anti-XSS) |
-| Gráficas | `recharts` `^2.12` | Dashboard analytics |
-| Toasts | `sonner` `^2` | Feedback global |
-| Fechas | `date-fns` `^3.6` + locale `es` | `formatRelativeTime`, `formatDate` |
+| Capa                 | Tecnología (versión real en `package.json`)                                  | Notas                                      |
+| -------------------- | ---------------------------------------------------------------------------- | ------------------------------------------ |
+| Framework            | Next.js `16.2.7` (App Router, RSC)                                           | `build` usa `--webpack`                    |
+| UI                   | React `19.2.0`, Tailwind `3.4.7`, `framer-motion` 12, `lucide-react`         | Design tokens en CSS vars (HSL)            |
+| Estado servidor      | `@tanstack/react-query` `^5.75`                                              | `useInfiniteQuery` para listas paginadas   |
+| Estado cliente       | `zustand` `^5` con `persist`                                                 | Solo persiste `localFavorites`             |
+| Formularios          | `react-hook-form` `^7.52` + `@hookform/resolvers` + `zod` `^3.23`            | Esquemas en `lib/utils/validators.ts`      |
+| Datos                | `firebase` `^11.9` (Web SDK: Firestore, Auth, Storage, Analytics, App Check) | Singleton en `lib/firebase/config.ts`      |
+| Backend autoritativo | `firebase-admin` `^13.10` + **Cloud Functions v2** (`functions/`)            | Sesión httpOnly + agregación de contadores |
+| Mapas                | `leaflet` `^1.9` (sin react-leaflet)                                         | Popups HTML escapados (anti-XSS)           |
+| Gráficas             | `recharts` `^2.12`                                                           | Dashboard analytics                        |
+| Toasts               | `sonner` `^2`                                                                | Feedback global                            |
+| Fechas               | `date-fns` `^3.6` + locale `es`                                              | `formatRelativeTime`, `formatDate`         |
 
 **Patrón arquitectónico:** capas limpias y ya separadas en `web/lib/`:
 
@@ -87,22 +87,23 @@ a `mobile/src/` (ver Fase 1).
 
 Extraídas de `firestore.rules`, `firestore.indexes.json` y la capa `lib/firebase/firestore.ts`.
 
-| Colección / Subcolección | Lectura | Escritura | Notas clave |
-|---|---|---|---|
-| `users/{uid}` | pública | dueño (o admin) | Modelo `AppUser`. Contiene `role`, `favoriteIds[]`, `businessIds[]`, `notifications{}` |
-| `users/{uid}/favorites/{fid}` | dueño | dueño | **Definida en reglas pero NO usada** por la app (favoritos viven en `user.favoriteIds`) |
-| `users/{uid}/notifications/{nid}` | dueño | dueño | Soporte para notificaciones in-app |
-| `businesses/{bid}` | pública | dueño/admin (crear: emprendedor) | Modelo `Business`. Contadores los escribe SOLO Cloud Functions |
-| `businesses/{bid}/reviews/{rid}` | pública | **id == uid del autor** | 1 reseña por usuario por negocio. Crear exige `rating ∈ [1,5]` |
-| `posts/{pid}` | pública | dueño/admin (crear: emprendedor) | Modelo `Post`. `ownerId` debe == auth.uid |
-| `posts/{pid}/comments/{cid}` | pública | crea cualquier autenticado; edita dueño/admin | **En reglas; sin UI web activa** |
-| `posts/{pid}/likes/{uid}` | pública | el propio uid | **En reglas; sin UI web activa** |
-| `categories/{cid}` | pública | admin | Gestionada en `/admin/categories`. Ojo: la UI usa constantes hardcodeadas (ver §10) |
-| `reports/{rid}` | admin | crea autenticado; edita/borra admin | Moderación de contenido |
-| `config/{cid}` | pública | admin | Configuración global de la plataforma |
+| Colección / Subcolección          | Lectura | Escritura                                     | Notas clave                                                                             |
+| --------------------------------- | ------- | --------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `users/{uid}`                     | pública | dueño (o admin)                               | Modelo `AppUser`. Contiene `role`, `favoriteIds[]`, `businessIds[]`, `notifications{}`  |
+| `users/{uid}/favorites/{fid}`     | dueño   | dueño                                         | **Definida en reglas pero NO usada** por la app (favoritos viven en `user.favoriteIds`) |
+| `users/{uid}/notifications/{nid}` | dueño   | dueño                                         | Soporte para notificaciones in-app                                                      |
+| `businesses/{bid}`                | pública | dueño/admin (crear: emprendedor)              | Modelo `Business`. Contadores los escribe SOLO Cloud Functions                          |
+| `businesses/{bid}/reviews/{rid}`  | pública | **id == uid del autor**                       | 1 reseña por usuario por negocio. Crear exige `rating ∈ [1,5]`                          |
+| `posts/{pid}`                     | pública | dueño/admin (crear: emprendedor)              | Modelo `Post`. `ownerId` debe == auth.uid                                               |
+| `posts/{pid}/comments/{cid}`      | pública | crea cualquier autenticado; edita dueño/admin | **En reglas; sin UI web activa**                                                        |
+| `posts/{pid}/likes/{uid}`         | pública | el propio uid                                 | **En reglas; sin UI web activa**                                                        |
+| `categories/{cid}`                | pública | admin                                         | Gestionada en `/admin/categories`. Ojo: la UI usa constantes hardcodeadas (ver §10)     |
+| `reports/{rid}`                   | admin   | crea autenticado; edita/borra admin           | Moderación de contenido                                                                 |
+| `config/{cid}`                    | pública | admin                                         | Configuración global de la plataforma                                                   |
 
 **Índices compuestos** (`firestore.indexes.json`) — el móvil debe respetar EXACTAMENTE estas queries
 o Firestore las rechazará:
+
 - `businesses`: `status + isFeatured(desc) + createdAt(desc)`; `status + category(array) + createdAt`;
   `status + rating(desc)`; variantes con `zone` e `isFeatured`; `reviewCount + rating`.
 - `posts`: `status + category + createdAt`; `businessId + createdAt`; `status + createdAt`;
@@ -115,13 +116,14 @@ o Firestore las rechazará:
 
 `type UserRole = 'user' | 'entrepreneur' | 'admin'` (`lib/types/user.ts`).
 
-| Rol | Puede |
-|---|---|
-| `user` | Navegar, buscar/filtrar, favoritos, escribir reseñas, reportar |
+| Rol            | Puede                                                                             |
+| -------------- | --------------------------------------------------------------------------------- |
+| `user`         | Navegar, buscar/filtrar, favoritos, escribir reseñas, reportar                    |
 | `entrepreneur` | Todo lo de `user` + crear/editar su(s) negocio(s) y posts + dashboard + analytics |
-| `admin` | Todo + panel `/admin`: moderar negocios/posts/usuarios, categorías, reportes |
+| `admin`        | Todo + panel `/admin`: moderar negocios/posts/usuarios, categorías, reportes      |
 
 **Cómo se aplica el rol:**
+
 - **Cliente:** `useAuth()` expone `isEntrepreneur` (= entrepreneur **o** admin) e `isAdmin`.
 - **Backend (autoritativo):** las reglas de Firestore leen
   `get(/users/$(uid)).data.role` → `isAdmin()` / `isEntrepreneur()`.
@@ -268,21 +270,22 @@ Límite: solo imágenes < 5 MB (impuesto por `storage.rules`).
 
 ## Mapa de equivalencias Web → Móvil (decisión de arquitectura)
 
-| Web (Next.js) | Móvil (Expo / RN) | ¿Se reutiliza? |
-|---|---|---|
-| `lib/types/*` | `src/types/*` | **Idéntico** (copiar) |
-| `lib/firebase/firestore.ts` | `src/services/firestore.ts` | **~95%** (cambia `DocumentSnapshot` cursors, igual API) |
-| `lib/firebase/auth.ts` | `src/services/auth.ts` | Quitar `syncSession`; Google → nativo |
-| `lib/firebase/storage.ts` | `src/services/storage.ts` | Adaptar `File`→URI/blob |
-| `lib/firebase/admin.ts` + `api/session` | — | **Se elimina** (web-only) |
-| `middleware.ts` | Guards en `app/_layout` / grupos `(protected)` | Reescribir |
-| `lib/hooks/use*` (React Query) | `src/hooks/use*` | **Idéntico en lógica** |
-| `lib/store/useStore.ts` (zustand) | `src/store/*` | **Idéntico** (persist → AsyncStorage) |
-| `lib/utils/*` | `src/utils/*` | **Idéntico** (date-fns, zod, whatsapp) |
-| Tokens CSS HSL + Tailwind | `src/theme/*` (tokens TS) | Traducir HSL→hex/objeto theme |
-| `components/*` (Tailwind) | `components/*` + `features/*` (RN + tokens) | Reconstruir UI, misma semántica |
+| Web (Next.js)                           | Móvil (Expo / RN)                              | ¿Se reutiliza?                                          |
+| --------------------------------------- | ---------------------------------------------- | ------------------------------------------------------- |
+| `lib/types/*`                           | `src/types/*`                                  | **Idéntico** (copiar)                                   |
+| `lib/firebase/firestore.ts`             | `src/services/firestore.ts`                    | **~95%** (cambia `DocumentSnapshot` cursors, igual API) |
+| `lib/firebase/auth.ts`                  | `src/services/auth.ts`                         | Quitar `syncSession`; Google → nativo                   |
+| `lib/firebase/storage.ts`               | `src/services/storage.ts`                      | Adaptar `File`→URI/blob                                 |
+| `lib/firebase/admin.ts` + `api/session` | —                                              | **Se elimina** (web-only)                               |
+| `middleware.ts`                         | Guards en `app/_layout` / grupos `(protected)` | Reescribir                                              |
+| `lib/hooks/use*` (React Query)          | `src/hooks/use*`                               | **Idéntico en lógica**                                  |
+| `lib/store/useStore.ts` (zustand)       | `src/store/*`                                  | **Idéntico** (persist → AsyncStorage)                   |
+| `lib/utils/*`                           | `src/utils/*`                                  | **Idéntico** (date-fns, zod, whatsapp)                  |
+| Tokens CSS HSL + Tailwind               | `src/theme/*` (tokens TS)                      | Traducir HSL→hex/objeto theme                           |
+| `components/*` (Tailwind)               | `components/*` + `features/*` (RN + tokens)    | Reconstruir UI, misma semántica                         |
 
 ### Tokens de marca extraídos (de `globals.css` + `tailwind.config.ts`)
+
 - **Primary (naranja KRUZO):** light `hsl(22 94% 48%)`, dark `hsl(22 90% 56%)`.
 - **Escala `brand`:** 50 `#fff4f0` … 500 `#ff4500` … 900 `#7a2000`.
 - **Gold (rating/destacado):** 400 `#fbbf24`, 500 `#f59e0b`, 600 `#d97706`.

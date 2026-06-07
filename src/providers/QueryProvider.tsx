@@ -1,6 +1,13 @@
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClient } from '@/lib/queryClient'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
+import { queryClient, persistOptions } from '@/lib/queryPersist'
 
+// Wraps the app with React Query AND restores/persists its cache to AsyncStorage
+// (offline-first). Children render immediately; the restore happens in the
+// background and hydrates queries as it completes.
 export function QueryProvider({ children }: { children: React.ReactNode }) {
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  return (
+    <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
+      {children}
+    </PersistQueryClientProvider>
+  )
 }
