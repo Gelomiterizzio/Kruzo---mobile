@@ -19,10 +19,7 @@ export function useFavorites() {
   const { user } = useAuth()
   const { localFavorites, addFavorite, removeFavorite } = useStore()
 
-  const isFavorite = useCallback(
-    (id: string) => localFavorites.includes(id),
-    [localFavorites],
-  )
+  const isFavorite = useCallback((id: string) => localFavorites.includes(id), [localFavorites])
 
   const toggle = useCallback(
     async (businessId: string): Promise<FavoriteResult> => {

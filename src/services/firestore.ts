@@ -44,8 +44,8 @@ export async function updateUserProfile(uid: string, data: Partial<AppUser>) {
 export async function getBusinessBySlug(slug: string): Promise<Business | null> {
   const q = query(collection(db, 'businesses'), where('slug', '==', slug), limit(1))
   const snap = await getDocs(q)
-  if (snap.empty) return null
   const d = snap.docs[0]
+  if (!d) return null
   return { id: d.id, ...d.data() } as Business
 }
 
@@ -217,7 +217,9 @@ export async function getReviews(businessId: string, pageSize = 10, cursor?: Doc
     limit(pageSize),
   ]
   if (cursor) constraints.push(startAfter(cursor))
-  const snap = await getDocs(query(collection(db, 'businesses', businessId, 'reviews'), ...constraints))
+  const snap = await getDocs(
+    query(collection(db, 'businesses', businessId, 'reviews'), ...constraints),
+  )
   return {
     reviews: snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Review),
     lastDoc: snap.docs[snap.docs.length - 1] ?? null,

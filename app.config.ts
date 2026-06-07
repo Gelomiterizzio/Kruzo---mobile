@@ -1,8 +1,8 @@
 import type { ExpoConfig } from 'expo/config'
 
-// KRUZO mobile — Expo app config.
-// Dynamic config (vs static app.json) so the Android Google Maps key and other
-// values can come from the environment (EXPO_PUBLIC_* are inlined at build time).
+// KRUZO mobile — Expo dynamic config.
+// Dynamic (vs static app.json) so secrets/keys come from the environment
+// (EXPO_PUBLIC_* are inlined at build time). Target: Android (Google Play).
 const config: ExpoConfig = {
   name: 'KRUZO',
   slug: 'kruzo',
@@ -11,31 +11,76 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
+  primaryColor: '#ff4500',
   assetBundlePatterns: ['**/*'],
+
+  // Over-the-air updates (EAS Update). runtimeVersion ties a JS bundle to a
+  // compatible native build; set the project id with `eas init`.
+  runtimeVersion: { policy: 'appVersion' },
+  updates: { fallbackToCacheTimeout: 0 },
+
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'bo.kruzo.app',
   },
+
   android: {
     package: 'bo.kruzo.app',
     edgeToEdgeEnabled: true,
+    backgroundColor: '#ffffff',
+    adaptiveIcon: { backgroundColor: '#ff4500' },
     config: {
       googleMaps: {
-        // Required by react-native-maps on Android. Set in EAS/secret env.
+        // Required by react-native-maps on Android. Provide via EAS secret env.
         apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY,
       },
     },
+    // Camera/media/location/notification permissions are declared by the
+    // respective config plugins below. Block the ones we never use.
+    blockedPermissions: ['android.permission.RECORD_AUDIO'],
   },
+
   plugins: [
     'expo-router',
     'expo-secure-store',
     '@react-native-google-signin/google-signin',
+    [
+      'expo-splash-screen',
+      {
+        backgroundColor: '#ffffff',
+        resizeMode: 'contain',
+        dark: { backgroundColor: '#0d0a08' },
+      },
+    ],
+    [
+      'expo-image-picker',
+      {
+        photosPermission:
+          'KRUZO necesita acceso a tus fotos para subir el logo, la portada y la galería de tu negocio o publicaciones.',
+        cameraPermission: 'KRUZO necesita la cámara para tomar fotos de tu negocio o productos.',
+      },
+    ],
+    [
+      'expo-location',
+      {
+        locationWhenInUsePermission:
+          'KRUZO usa tu ubicación para mostrarte negocios y servicios cercanos en Santa Cruz.',
+      },
+    ],
+    [
+      'expo-notifications',
+      {
+        color: '#ff4500',
+      },
+    ],
   ],
+
   experiments: {
     typedRoutes: true,
   },
+
   extra: {
-    // Place EAS project id here after `eas init` (eas.json scaffolded below).
+    // Set by `eas init` (kept empty so config evaluates without an EAS project).
     eas: {},
   },
 }

@@ -1,8 +1,4 @@
-import {
-  normalizeBolivianPhone,
-  buildWhatsAppURL,
-  buildWhatsAppContactURL,
-} from '@/utils/whatsapp'
+import { normalizeBolivianPhone, buildWhatsAppURL, buildWhatsAppContactURL } from '@/utils/whatsapp'
 
 describe('whatsapp utils', () => {
   it('normalizes a local number to the 591 country code', () => {

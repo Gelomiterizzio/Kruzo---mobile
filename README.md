@@ -29,14 +29,14 @@ npm run start          # Metro (requiere dev build para Google Sign-In / mapas n
 
 ## Scripts
 
-| Script | Acción |
-|---|---|
-| `npm run start` | Inicia Metro |
-| `npm run android` | Abre en Android |
-| `npm run type-check` | `tsc --noEmit` |
-| `npm run lint` | ESLint |
-| `npm test` | Jest |
-| `npm run doctor` | expo-doctor |
+| Script               | Acción          |
+| -------------------- | --------------- |
+| `npm run start`      | Inicia Metro    |
+| `npm run android`    | Abre en Android |
+| `npm run type-check` | `tsc --noEmit`  |
+| `npm run lint`       | ESLint          |
+| `npm test`           | Jest            |
+| `npm run doctor`     | expo-doctor     |
 
 ## Estado
 

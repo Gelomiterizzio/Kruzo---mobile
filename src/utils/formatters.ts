@@ -54,11 +54,14 @@ export function getInitials(name: string): string {
 
 export function isOpenNow(hours: Record<string, { open: string; close: string } | null>): boolean {
   const now = new Date()
-  const day = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][now.getDay()]
+  const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+  const day = days[now.getDay()]
+  if (!day) return false
   const h = hours[day]
   if (!h) return false
-  const cur = now.getHours() * 60 + now.getMinutes()
   const [oh, om] = h.open.split(':').map(Number)
   const [ch, cm] = h.close.split(':').map(Number)
+  if (oh == null || om == null || ch == null || cm == null) return false
+  const cur = now.getHours() * 60 + now.getMinutes()
   return cur >= oh * 60 + om && cur <= ch * 60 + cm
 }
