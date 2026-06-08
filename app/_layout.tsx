@@ -33,6 +33,8 @@ function RootNavigator() {
       <Stack.Screen name="business/[slug]" />
       <Stack.Screen name="post/[id]" />
       <Stack.Screen name="user/[id]" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="notifications" />
     </Stack>
   )
 }

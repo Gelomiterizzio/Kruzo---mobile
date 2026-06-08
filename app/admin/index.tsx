@@ -1,7 +1,17 @@
-import { ScrollView, View, Text, StyleSheet } from 'react-native'
+import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native'
+import { useRouter, type Href } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { collection, getCountFromServer, query, where } from 'firebase/firestore'
-import { Users, Store, CheckCircle2, ShieldAlert, FileText, Flag } from 'lucide-react-native'
+import {
+  Users,
+  Store,
+  CheckCircle2,
+  ShieldAlert,
+  FileText,
+  Flag,
+  LayoutGrid,
+  ChevronRight,
+} from 'lucide-react-native'
 import { Screen } from '@/components/layout/Screen'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/Card'
@@ -10,8 +20,17 @@ import { db } from '@/services/firebase'
 import { useTheme } from '@/providers/ThemeProvider'
 import { BUSINESS_CATEGORIES } from '@/constants'
 
+const SECTIONS: { icon: typeof Store; label: string; to: Href }[] = [
+  { icon: Store, label: 'Gestionar negocios', to: '/admin/businesses' },
+  { icon: FileText, label: 'Gestionar publicaciones', to: '/admin/posts' },
+  { icon: Users, label: 'Gestionar usuarios', to: '/admin/users' },
+  { icon: LayoutGrid, label: 'Categorías', to: '/admin/categories' },
+  { icon: Flag, label: 'Reportes', to: '/admin/reports' },
+]
+
 export default function AdminHomeScreen() {
   const { theme } = useTheme()
+  const router = useRouter()
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-stats'],
@@ -88,6 +107,30 @@ export default function AdminHomeScreen() {
             ))}
           </View>
 
+          <Card padding={0} style={styles.sections}>
+            {SECTIONS.map((s, i) => (
+              <Pressable
+                key={s.label}
+                onPress={() => router.push(s.to)}
+                accessibilityRole="button"
+                accessibilityLabel={s.label}
+                style={[
+                  styles.sectionRow,
+                  i < SECTIONS.length - 1 && {
+                    borderBottomColor: theme.colors.border,
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                  },
+                ]}
+              >
+                <s.icon size={18} color={theme.colors.primary} />
+                <Text style={[styles.sectionLabel, { color: theme.colors.foreground }]}>
+                  {s.label}
+                </Text>
+                <ChevronRight size={18} color={theme.colors.mutedForeground} />
+              </Pressable>
+            ))}
+          </Card>
+
           <Card style={styles.distCard}>
             <Text style={[styles.distTitle, { color: theme.colors.foreground }]}>
               Distribución por categorías
@@ -134,6 +177,9 @@ const styles = StyleSheet.create({
   },
   metricValue: { fontSize: 20, fontWeight: '800' },
   metricLabel: { fontSize: 11 },
+  sections: { overflow: 'hidden' },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
+  sectionLabel: { flex: 1, fontSize: 15, fontWeight: '500' },
   distCard: { gap: 10 },
   distTitle: { fontSize: 15, fontWeight: '700' },
   distRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },

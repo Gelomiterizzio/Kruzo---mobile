@@ -1,6 +1,15 @@
 import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { LayoutDashboard, Shield, LogOut, Sun, Moon, ChevronRight } from 'lucide-react-native'
+import {
+  LayoutDashboard,
+  Shield,
+  LogOut,
+  Sun,
+  Moon,
+  ChevronRight,
+  Bell,
+  Settings,
+} from 'lucide-react-native'
 import { Screen } from '@/components/layout/Screen'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
@@ -71,6 +80,16 @@ export default function ProfileScreen() {
               onPress={() => router.push('/admin')}
             />
           ) : null}
+          <MenuRow
+            icon={<Bell size={18} color={theme.colors.foreground} />}
+            label="Notificaciones"
+            onPress={() => router.push('/notifications')}
+          />
+          <MenuRow
+            icon={<Settings size={18} color={theme.colors.foreground} />}
+            label="Configuración"
+            onPress={() => router.push('/settings')}
+          />
           <MenuRow
             icon={
               scheme === 'dark' ? (

@@ -1,11 +1,20 @@
 import { ScrollView, View, Text, StyleSheet } from 'react-native'
+import { useRouter, type Href } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { collection, getCountFromServer, query, where } from 'firebase/firestore'
-import { Eye, Star, MessageSquare, FileText, Store, Plus, TrendingUp } from 'lucide-react-native'
+import {
+  Eye,
+  Star,
+  MessageSquare,
+  FileText,
+  Store,
+  Plus,
+  TrendingUp,
+  Settings,
+} from 'lucide-react-native'
 import { Screen } from '@/components/layout/Screen'
 import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/Card'
-import { toast } from '@/components/overlay/toast'
 import { db } from '@/services/firebase'
 import { getBusinessById } from '@/services/firestore'
 import { useAuth } from '@/hooks/useAuth'
@@ -14,6 +23,7 @@ import { formatNumber } from '@/utils/formatters'
 
 export default function DashboardHomeScreen() {
   const { theme } = useTheme()
+  const router = useRouter()
   const { user } = useAuth()
   const businessId = user?.businessIds?.[0]
 
@@ -67,10 +77,33 @@ export default function DashboardHomeScreen() {
     },
   ]
 
-  const actions = [
-    { icon: Store, label: 'Gestionar mi negocio', desc: 'Editar información y fotos' },
-    { icon: Plus, label: 'Nueva publicación', desc: 'Agregar producto o servicio' },
-    { icon: TrendingUp, label: 'Ver estadísticas', desc: 'Visitas y contactos' },
+  const actions: { icon: typeof Store; label: string; desc: string; to: Href }[] = [
+    {
+      icon: Store,
+      label: 'Gestionar mi negocio',
+      desc: 'Editar información y fotos',
+      to: '/dashboard/business',
+    },
+    {
+      icon: Plus,
+      label: 'Nueva publicación',
+      desc: 'Agregar producto o servicio',
+      to: '/dashboard/posts/new',
+    },
+    { icon: FileText, label: 'Mis publicaciones', desc: 'Ver y editar', to: '/dashboard/posts' },
+    {
+      icon: TrendingUp,
+      label: 'Estadísticas',
+      desc: 'Métricas de tu negocio',
+      to: '/dashboard/analytics',
+    },
+    { icon: Star, label: 'Reseñas', desc: 'Opiniones de clientes', to: '/dashboard/reviews' },
+    {
+      icon: Settings,
+      label: 'Configuración',
+      desc: 'Perfil y notificaciones',
+      to: '/dashboard/settings',
+    },
   ]
 
   return (
@@ -99,12 +132,8 @@ export default function DashboardHomeScreen() {
         </View>
 
         <View style={styles.actions}>
-          {actions.map(({ icon: Icon, label, desc }) => (
-            <Card
-              key={label}
-              onPress={() => toast.info('Disponible en una próxima actualización')}
-              style={styles.actionCard}
-            >
+          {actions.map(({ icon: Icon, label, desc, to }) => (
+            <Card key={label} onPress={() => router.push(to)} style={styles.actionCard}>
               <Icon size={20} color={theme.colors.primary} />
               <View style={styles.actionMeta}>
                 <Text style={[styles.actionLabel, { color: theme.colors.foreground }]}>
@@ -119,7 +148,7 @@ export default function DashboardHomeScreen() {
         </View>
 
         {!user?.businessIds?.length ? (
-          <Card style={styles.setup}>
+          <Card onPress={() => router.push('/dashboard/business')} style={styles.setup}>
             <Text style={[styles.setupTitle, { color: theme.colors.foreground }]}>
               Empieza registrando tu negocio
             </Text>

@@ -65,8 +65,16 @@ export const registerSchema = z
     path: ['confirmPassword'],
   })
 
-export type BusinessFormValues = z.infer<typeof businessSchema>
-export type PostFormValues = z.infer<typeof postSchema>
-export type ReviewFormValues = z.infer<typeof reviewSchema>
-export type LoginFormValues = z.infer<typeof loginSchema>
-export type RegisterFormValues = z.infer<typeof registerSchema>
+// Output types (post-parse: defaults applied, transforms run) — used for submit handlers.
+export type BusinessFormValues = z.output<typeof businessSchema>
+export type PostFormValues = z.output<typeof postSchema>
+export type ReviewFormValues = z.output<typeof reviewSchema>
+export type LoginFormValues = z.output<typeof loginSchema>
+export type RegisterFormValues = z.output<typeof registerSchema>
+
+// Input types (pre-parse: optionals/defaults not yet applied) — used for useForm field types.
+export type BusinessFormInput = z.input<typeof businessSchema>
+export type PostFormInput = z.input<typeof postSchema>
+export type ReviewFormInput = z.input<typeof reviewSchema>
+export type LoginFormInput = z.input<typeof loginSchema>
+export type RegisterFormInput = z.input<typeof registerSchema>

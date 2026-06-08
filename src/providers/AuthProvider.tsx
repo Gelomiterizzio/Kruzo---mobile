@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { type User } from 'firebase/auth'
 import { onAuthChange } from '@/services/auth'
 import { getUserById } from '@/services/firestore'
@@ -11,12 +11,14 @@ interface AuthContextType {
   firebaseUser: User | null
   appUser: AppUser | null
   loading: boolean
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   firebaseUser: null,
   appUser: null,
   loading: true,
+  refreshUser: async () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -25,20 +27,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const setStoreUser = useStore((s) => s.setUser)
   const setFavorites = useStore((s) => s.setFavorites)
+  const uidRef = useRef<string | null>(null)
+
+  const loadAppUser = useCallback(
+    async (uid: string) => {
+      try {
+        const u = await getUserById(uid)
+        setAppUser(u)
+        setStoreUser(u)
+        if (u?.favoriteIds) setFavorites(u.favoriteIds)
+      } catch {
+        setAppUser(null)
+        setStoreUser(null)
+      }
+    },
+    [setStoreUser, setFavorites],
+  )
+
+  // Re-fetch the current user's Firestore doc (e.g. after editing the profile or
+  // creating a business) so the UI reflects the change immediately.
+  const refreshUser = useCallback(async () => {
+    if (uidRef.current) await loadAppUser(uidRef.current)
+  }, [loadAppUser])
 
   useEffect(() => {
     const unsub = onAuthChange(async (fbUser) => {
       setFirebaseUser(fbUser)
+      uidRef.current = fbUser?.uid ?? null
       if (fbUser) {
-        try {
-          const u = await getUserById(fbUser.uid)
-          setAppUser(u)
-          setStoreUser(u)
-          if (u?.favoriteIds?.length) setFavorites(u.favoriteIds)
-        } catch {
-          setAppUser(null)
-          setStoreUser(null)
-        }
+        await loadAppUser(fbUser.uid)
       } else {
         setAppUser(null)
         setStoreUser(null)
@@ -47,10 +64,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     })
     return unsub
-  }, [setStoreUser, setFavorites])
+  }, [loadAppUser, setStoreUser, setFavorites])
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, appUser, loading }}>
+    <AuthContext.Provider value={{ firebaseUser, appUser, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

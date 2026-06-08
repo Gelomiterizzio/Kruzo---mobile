@@ -41,6 +41,24 @@ export const BUSINESS_CATEGORIES = [
   { key: 'carpinteria', emoji: '🪑', label: 'Carpintería', gradient: ['#d97706', '#ca8a04'] },
 ] as const
 
+// Post categories — SEPARATE list from BUSINESS_CATEGORIES (mirror of web PostForm).
+// The stored value is the lowercased label.
+export const POST_CATEGORIES = [
+  'Comida',
+  'Repostería',
+  'Ropa',
+  'Tecnología',
+  'Belleza',
+  'Fotografía',
+  'Carpintería',
+  'Electricidad',
+  'Automotriz',
+  'Hogar',
+  'Educación',
+  'Servicios',
+  'Otro',
+] as const
+
 export const PRICE_TYPE_LABELS = {
   fixed: 'Precio fijo',
   negotiable: 'Negociable',
