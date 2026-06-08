@@ -28,7 +28,7 @@ export function parseAuthError(error: unknown): string {
 }
 
 export function useAuth() {
-  const { firebaseUser, appUser: user, loading } = useAuthContext()
+  const { firebaseUser, appUser: user, loading, refreshUser } = useAuthContext()
   const [error, setError] = useState<string | null>(null)
 
   const clearError = () => setError(null)
@@ -96,5 +96,6 @@ export function useAuth() {
     register,
     sendReset,
     signOut,
+    refreshUser,
   }
 }

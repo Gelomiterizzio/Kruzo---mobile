@@ -39,6 +39,14 @@ export async function updateUserProfile(uid: string, data: Partial<AppUser>) {
   await updateDoc(doc(db, 'users', uid), { ...data, updatedAt: serverTimestamp() })
 }
 
+// Links a newly-created business to its owner's businessIds. Uses the existing
+// `businessIds` field + the owner's own-doc write permission (Firestore rules).
+// This closes a web gap where createBusiness never updated the owner doc, so the
+// dashboard could not find the new business.
+export async function linkBusinessToOwner(userId: string, businessId: string) {
+  await updateDoc(doc(db, 'users', userId), { businessIds: arrayUnion(businessId) })
+}
+
 // ─── BUSINESSES ─────────────────────────────────────────────────────────────
 
 export async function getBusinessBySlug(slug: string): Promise<Business | null> {
