@@ -31,4 +31,7 @@ export interface AppUser {
   banReason: string
   createdAt: Timestamp
   lastSeen: Timestamp
+  // Mobile-only: Expo push token, written by the client for push readiness.
+  // Consumed by a future server sender (see docs/06). Optional; absent on web.
+  expoPushToken?: string
 }

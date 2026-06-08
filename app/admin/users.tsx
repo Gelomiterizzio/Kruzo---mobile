@@ -12,7 +12,8 @@ import { toast } from '@/components/overlay/toast'
 import { getAllUsers, setUserRole, setUserBanned } from '@/services/admin'
 import { useTheme } from '@/providers/ThemeProvider'
 import { formatRelativeTime } from '@/utils/formatters'
-import type { UserRole } from '@/types/user'
+import { haptics } from '@/utils/haptics'
+import type { AppUser, UserRole } from '@/types/user'
 
 const ROLE_OPTIONS = [
   { label: 'Usuario', value: 'user' },
@@ -28,26 +29,34 @@ export default function AdminUsersScreen() {
     queryFn: () => getAllUsers(100),
   })
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+  const key = ['admin-users']
+  const patchUser = (uid: string, p: Partial<AppUser>) =>
+    queryClient.setQueryData<AppUser[]>(key, (old) =>
+      old?.map((u) => (u.id === uid ? { ...u, ...p } : u)),
+    )
 
-  const changeRole = async (uid: string, role: string) => {
-    try {
-      await setUserRole(uid, role as UserRole)
-      refresh()
-      toast.success('Rol actualizado')
-    } catch {
-      toast.error('Error al actualizar')
-    }
+  const changeRole = (uid: string, role: string) => {
+    const prev = queryClient.getQueryData<AppUser[]>(key)
+    patchUser(uid, { role: role as UserRole })
+    haptics.light()
+    setUserRole(uid, role as UserRole)
+      .then(() => toast.success('Rol actualizado'))
+      .catch(() => {
+        queryClient.setQueryData(key, prev)
+        toast.error('Error al actualizar')
+      })
   }
 
-  const toggleBan = async (uid: string, banned: boolean) => {
-    try {
-      await setUserBanned(uid, !banned)
-      refresh()
-      toast.success(!banned ? 'Usuario suspendido' : 'Usuario reactivado')
-    } catch {
-      toast.error('Error')
-    }
+  const toggleBan = (uid: string, banned: boolean) => {
+    const prev = queryClient.getQueryData<AppUser[]>(key)
+    patchUser(uid, { isBanned: !banned })
+    haptics.light()
+    setUserBanned(uid, !banned)
+      .then(() => toast.success(!banned ? 'Usuario suspendido' : 'Usuario reactivado'))
+      .catch(() => {
+        queryClient.setQueryData(key, prev)
+        toast.error('Error')
+      })
   }
 
   return (

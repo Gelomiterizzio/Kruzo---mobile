@@ -20,7 +20,8 @@ import {
 } from '@/services/admin'
 import { useTheme } from '@/providers/ThemeProvider'
 import { formatRelativeTime } from '@/utils/formatters'
-import type { BusinessStatus } from '@/types/business'
+import { haptics } from '@/utils/haptics'
+import type { Business, BusinessStatus } from '@/types/business'
 
 const STATUS_META: Record<BusinessStatus, { label: string; variant: BadgeVariant }> = {
   active: { label: 'Activo', variant: 'success' },
@@ -45,14 +46,20 @@ export default function AdminBusinessesScreen() {
     queryFn: () => getAllBusinesses(100),
   })
 
-  const run = async (action: () => Promise<void>, msg: string) => {
-    try {
-      await action()
-      queryClient.invalidateQueries({ queryKey: ['admin-businesses'] })
-      toast.success(msg)
-    } catch {
-      toast.error('Error al actualizar')
-    }
+  // Optimistic: patch the cached item immediately, reconcile/rollback on result.
+  const patch = (id: string, p: Partial<Business>, action: () => Promise<void>, msg: string) => {
+    const key = ['admin-businesses']
+    const prev = queryClient.getQueryData<Business[]>(key)
+    queryClient.setQueryData<Business[]>(key, (old) =>
+      old?.map((b) => (b.id === id ? { ...b, ...p } : b)),
+    )
+    haptics.light()
+    action()
+      .then(() => toast.success(msg))
+      .catch(() => {
+        queryClient.setQueryData(key, prev)
+        toast.error('Error al actualizar')
+      })
   }
 
   const businesses = (data ?? []).filter((b) => filter === 'all' || b.status === filter)
@@ -134,7 +141,12 @@ export default function AdminBusinessesScreen() {
                       variant="soft"
                       size="sm"
                       onPress={() =>
-                        run(() => setBusinessStatus(item.id, 'active'), 'Negocio aprobado')
+                        patch(
+                          item.id,
+                          { status: 'active' },
+                          () => setBusinessStatus(item.id, 'active'),
+                          'Negocio aprobado',
+                        )
                       }
                     />
                   ) : null}
@@ -145,7 +157,12 @@ export default function AdminBusinessesScreen() {
                       variant="soft"
                       size="sm"
                       onPress={() =>
-                        run(() => setBusinessStatus(item.id, 'suspended'), 'Negocio suspendido')
+                        patch(
+                          item.id,
+                          { status: 'suspended' },
+                          () => setBusinessStatus(item.id, 'suspended'),
+                          'Negocio suspendido',
+                        )
                       }
                     />
                   ) : null}
@@ -160,7 +177,9 @@ export default function AdminBusinessesScreen() {
                     variant="soft"
                     size="sm"
                     onPress={() =>
-                      run(
+                      patch(
+                        item.id,
+                        { isFeatured: !item.isFeatured },
                         () => setBusinessFeatured(item.id, !item.isFeatured),
                         item.isFeatured ? 'Quitado de destacados' : 'Negocio destacado',
                       )
@@ -177,7 +196,9 @@ export default function AdminBusinessesScreen() {
                     variant="soft"
                     size="sm"
                     onPress={() =>
-                      run(
+                      patch(
+                        item.id,
+                        { isVerified: !item.isVerified },
                         () => setBusinessVerified(item.id, !item.isVerified),
                         item.isVerified ? 'Verificación removida' : 'Negocio verificado',
                       )

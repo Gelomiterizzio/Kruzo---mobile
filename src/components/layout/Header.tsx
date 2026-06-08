@@ -56,7 +56,11 @@ export function Header({
       </View>
 
       {title ? (
-        <Text style={[styles.title, { color: theme.colors.foreground }]} numberOfLines={1}>
+        <Text
+          style={[styles.title, { color: theme.colors.foreground }]}
+          numberOfLines={1}
+          accessibilityRole="header"
+        >
           {title}
         </Text>
       ) : (

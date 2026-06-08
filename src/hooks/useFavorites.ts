@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { toggleFavorite } from '@/services/firestore'
 import { useStore } from '@/store/useStore'
+import { haptics } from '@/utils/haptics'
 import { useAuth } from './useAuth'
 
 export type FavoriteResult =
@@ -27,6 +28,7 @@ export function useFavorites() {
       const isFav = isFavorite(businessId)
       if (isFav) removeFavorite(businessId)
       else addFavorite(businessId)
+      haptics.light()
       try {
         await toggleFavorite(user.id, businessId, isFav)
         return { status: isFav ? 'removed' : 'added' }

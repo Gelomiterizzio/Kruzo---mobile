@@ -13,7 +13,8 @@ import { toast } from '@/components/overlay/toast'
 import { getAllPosts, setPostStatus } from '@/services/admin'
 import { useTheme } from '@/providers/ThemeProvider'
 import { formatPrice, formatRelativeTime } from '@/utils/formatters'
-import type { PostStatus } from '@/types/post'
+import { haptics } from '@/utils/haptics'
+import type { Post, PostStatus } from '@/types/post'
 
 const STATUS_VARIANT: Record<PostStatus, BadgeVariant> = {
   active: 'success',
@@ -31,17 +32,25 @@ export default function AdminPostsScreen() {
     queryFn: () => getAllPosts(100),
   })
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['admin-posts'] })
+  const key = ['admin-posts']
+  const patchPost = (id: string, status: PostStatus, prev: Post[] | undefined) => {
+    queryClient.setQueryData<Post[]>(key, (old) =>
+      old?.map((p) => (p.id === id ? { ...p, status } : p)),
+    )
+    return prev
+  }
 
-  const toggle = async (id: string, status: PostStatus) => {
+  const toggle = (id: string, status: PostStatus) => {
     const next: PostStatus = status === 'active' ? 'paused' : 'active'
-    try {
-      await setPostStatus(id, next)
-      refresh()
-      toast.success(next === 'active' ? 'Publicación activada' : 'Publicación pausada')
-    } catch {
-      toast.error('Error')
-    }
+    const prev = queryClient.getQueryData<Post[]>(key)
+    patchPost(id, next, prev)
+    haptics.light()
+    setPostStatus(id, next)
+      .then(() => toast.success(next === 'active' ? 'Publicación activada' : 'Publicación pausada'))
+      .catch(() => {
+        queryClient.setQueryData(key, prev)
+        toast.error('Error')
+      })
   }
 
   const remove = (id: string, title: string) => {
@@ -50,14 +59,16 @@ export default function AdminPostsScreen() {
       {
         text: 'Eliminar',
         style: 'destructive',
-        onPress: async () => {
-          try {
-            await setPostStatus(id, 'deleted')
-            refresh()
-            toast.success('Publicación eliminada')
-          } catch {
-            toast.error('Error al eliminar')
-          }
+        onPress: () => {
+          const prev = queryClient.getQueryData<Post[]>(key)
+          patchPost(id, 'deleted', prev) // filtered out of the list immediately
+          haptics.warning()
+          setPostStatus(id, 'deleted')
+            .then(() => toast.success('Publicación eliminada'))
+            .catch(() => {
+              queryClient.setQueryData(key, prev)
+              toast.error('Error al eliminar')
+            })
         },
       },
     ])

@@ -19,7 +19,9 @@ export default function ExploreScreen() {
 
   const header = (
     <View style={styles.header}>
-      <Text style={[styles.title, { color: theme.colors.foreground }]}>Explorar</Text>
+      <Text style={[styles.title, { color: theme.colors.foreground }]} accessibilityRole="header">
+        Explorar
+      </Text>
       <Text style={[styles.subtitle, { color: theme.colors.mutedForeground }]}>
         Negocios y emprendimientos de Santa Cruz
       </Text>

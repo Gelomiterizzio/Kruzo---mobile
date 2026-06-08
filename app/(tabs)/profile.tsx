@@ -50,7 +50,12 @@ export default function ProfileScreen() {
   return (
     <Screen edges={['top']} padded={false}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[styles.heading, { color: theme.colors.foreground }]}>Perfil</Text>
+        <Text
+          style={[styles.heading, { color: theme.colors.foreground }]}
+          accessibilityRole="header"
+        >
+          Perfil
+        </Text>
 
         <Card style={styles.profileCard}>
           <Avatar uri={user.photoURL} name={user.displayName} size={64} ring />

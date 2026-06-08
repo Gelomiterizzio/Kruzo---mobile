@@ -22,6 +22,8 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'bo.kruzo.app',
+    // Universal Links (requires an apple-app-site-association on kruzo.bo).
+    associatedDomains: ['applinks:kruzo.bo'],
   },
 
   android: {
@@ -38,6 +40,21 @@ const config: ExpoConfig = {
     // Camera/media/location/notification permissions are declared by the
     // respective config plugins below. Block the ones we never use.
     blockedPermissions: ['android.permission.RECORD_AUDIO'],
+    // Android App Links: open kruzo.bo deep links in the app (autoVerify needs a
+    // /.well-known/assetlinks.json on the domain). Custom scheme `kruzo://` also
+    // works out of the box for business/post/user routes.
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        category: ['BROWSABLE', 'DEFAULT'],
+        data: [
+          { scheme: 'https', host: 'kruzo.bo', pathPrefix: '/business' },
+          { scheme: 'https', host: 'kruzo.bo', pathPrefix: '/post' },
+          { scheme: 'https', host: 'kruzo.bo', pathPrefix: '/user' },
+        ],
+      },
+    ],
   },
 
   plugins: [

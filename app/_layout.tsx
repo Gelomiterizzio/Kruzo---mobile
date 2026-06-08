@@ -6,17 +6,23 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
+import { OfflineBanner } from '@/components/feedback/OfflineBanner'
 import { ToastHost } from '@/components/overlay/ToastHost'
 import { QueryProvider } from '@/providers/QueryProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import { AuthProvider, useAuthContext } from '@/providers/AuthProvider'
+import { initNetworkManagers } from '@/lib/network'
+import { usePushRegistration } from '@/hooks/usePushRegistration'
 
 // Keep the native splash up until auth has resolved, so the app never flashes a
 // signed-out state before restoring the session.
 void SplashScreen.preventAutoHideAsync()
+// Wire React Query to network + app-focus state (offline-first).
+initNetworkManagers()
 
 function RootNavigator() {
   const { loading } = useAuthContext()
+  usePushRegistration()
 
   useEffect(() => {
     if (!loading) void SplashScreen.hideAsync()
@@ -49,6 +55,7 @@ export default function RootLayout() {
               <BottomSheetModalProvider>
                 <AuthProvider>
                   <RootNavigator />
+                  <OfflineBanner />
                   <ToastHost />
                   <StatusBar style="auto" />
                 </AuthProvider>

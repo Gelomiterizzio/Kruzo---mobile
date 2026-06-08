@@ -1,7 +1,7 @@
 import { ScrollView, View, Text, StyleSheet } from 'react-native'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Tag, Truck } from 'lucide-react-native'
+import { Tag, Truck, Share2 } from 'lucide-react-native'
 import { Screen } from '@/components/layout/Screen'
 import { Header } from '@/components/layout/Header'
 import { LoadingState } from '@/components/feedback/LoadingState'
@@ -9,11 +9,12 @@ import { EmptyState } from '@/components/feedback/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
+import { IconButton } from '@/components/ui/IconButton'
 import { usePostById } from '@/hooks/useDocQueries'
 import { useTheme } from '@/providers/ThemeProvider'
 import { formatPrice, formatRelativeTime } from '@/utils/formatters'
 import { buildWhatsAppPostURL } from '@/utils/whatsapp'
-import { openWhatsApp } from '@/utils/contact'
+import { openWhatsApp, shareLink } from '@/utils/contact'
 
 export default function PostDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -49,7 +50,16 @@ export default function PostDetailScreen() {
 
   return (
     <Screen edges={['bottom']} padded={false}>
-      <Header title={post.businessName} />
+      <Header
+        title={post.businessName}
+        right={
+          <IconButton
+            icon={<Share2 size={18} color={theme.colors.foreground} />}
+            accessibilityLabel="Compartir publicación"
+            onPress={() => shareLink(post.title, `/post/${post.id}`)}
+          />
+        }
+      />
       <ScrollView contentContainerStyle={styles.content}>
         {post.images[0] ? (
           <Image
