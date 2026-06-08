@@ -45,7 +45,9 @@ export default function FavoritesScreen() {
   return (
     <Screen edges={['top']} padded={false}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.foreground }]}>Favoritos</Text>
+        <Text style={[styles.title, { color: theme.colors.foreground }]} accessibilityRole="header">
+          Favoritos
+        </Text>
         <Text style={[styles.subtitle, { color: theme.colors.mutedForeground }]}>
           {favorites.length} {favorites.length === 1 ? 'negocio guardado' : 'negocios guardados'}
         </Text>

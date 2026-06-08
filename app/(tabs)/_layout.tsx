@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router'
 import { Home, Search, Heart, User } from 'lucide-react-native'
 import { useTheme } from '@/providers/ThemeProvider'
+import { haptics } from '@/utils/haptics'
 
 // Public bottom-tab navigator (Home/Explore are open to everyone). Dashboard and
 // Admin are reached from Profile and gated by role, keeping the tab bar clean.
@@ -8,6 +9,7 @@ export default function TabsLayout() {
   const { theme } = useTheme()
   return (
     <Tabs
+      screenListeners={{ tabPress: () => haptics.selection() }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,

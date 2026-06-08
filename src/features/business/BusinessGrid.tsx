@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { FlatList, RefreshControl, View, ActivityIndicator, StyleSheet } from 'react-native'
 import { useBusinesses } from '@/hooks/useBusinesses'
 import { BusinessCard } from './BusinessCard'
@@ -47,10 +48,13 @@ export function BusinessGrid({
   const { businesses, loading, loadingMore, hasMore, error, loadMore, refetch, isRefetching } =
     useBusinesses({ category, zone, featured })
 
-  const renderItem = ({ item }: { item: Business }) => (
-    <View style={styles.cell}>
-      <BusinessCard business={item} />
-    </View>
+  const renderItem = useCallback(
+    ({ item }: { item: Business }) => (
+      <View style={styles.cell}>
+        <BusinessCard business={item} />
+      </View>
+    ),
+    [],
   )
 
   return (
@@ -67,6 +71,10 @@ export function BusinessGrid({
         if (hasMore) loadMore()
       }}
       onEndReachedThreshold={0.4}
+      removeClippedSubviews
+      initialNumToRender={8}
+      maxToRenderPerBatch={8}
+      windowSize={7}
       refreshControl={
         <RefreshControl
           refreshing={isRefetching}

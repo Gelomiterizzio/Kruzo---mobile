@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react-native'
 import { Card } from '@/components/ui/Card'
@@ -12,7 +12,7 @@ export interface ReviewCardProps {
   review: Review
 }
 
-export function ReviewCard({ review }: ReviewCardProps) {
+export const ReviewCard = memo(function ReviewCard({ review }: ReviewCardProps) {
   const { theme } = useTheme()
   const [expanded, setExpanded] = useState(false)
   const isLong = review.comment.length > 200
@@ -75,7 +75,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
       ) : null}
     </Card>
   )
-}
+})
 
 const styles = StyleSheet.create({
   card: { gap: 10 },

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
@@ -12,7 +13,7 @@ export interface PostCardProps {
   onPress?: () => void
 }
 
-export function PostCard({ post, onPress }: PostCardProps) {
+export const PostCard = memo(function PostCard({ post, onPress }: PostCardProps) {
   const { theme } = useTheme()
   const router = useRouter()
 
@@ -99,7 +100,7 @@ export function PostCard({ post, onPress }: PostCardProps) {
       </View>
     </Card>
   )
-}
+})
 
 const styles = StyleSheet.create({
   card: { overflow: 'hidden' },

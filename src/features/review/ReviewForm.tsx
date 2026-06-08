@@ -2,7 +2,8 @@ import { View, Text, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Timestamp } from 'firebase/firestore'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { TextArea } from '@/components/ui/TextArea'
@@ -11,10 +12,21 @@ import { toast } from '@/components/overlay/toast'
 import { useTheme } from '@/providers/ThemeProvider'
 import { useAuth } from '@/hooks/useAuth'
 import { createReview } from '@/services/firestore'
-import { reviewSchema, type ReviewFormValues } from '@/utils/validators'
+import { haptics } from '@/utils/haptics'
+import { reviewSchema, type ReviewFormValues, type ReviewFormInput } from '@/utils/validators'
+import type { Review } from '@/types/review'
 
 export interface ReviewFormProps {
   businessId: string
+}
+
+interface ReviewsPage {
+  reviews: Review[]
+  lastDoc: unknown
+}
+interface ReviewsData {
+  pages: ReviewsPage[]
+  pageParams: unknown[]
 }
 
 export function ReviewForm({ businessId }: ReviewFormProps) {
@@ -22,15 +34,65 @@ export function ReviewForm({ businessId }: ReviewFormProps) {
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
   const queryClient = useQueryClient()
+  const queryKey = ['reviews', businessId]
 
   const {
     control,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting },
-  } = useForm<ReviewFormValues>({
+    formState: { errors },
+  } = useForm<ReviewFormInput, unknown, ReviewFormValues>({
     resolver: zodResolver(reviewSchema),
     defaultValues: { rating: 0, comment: '' },
+  })
+
+  // Optimistic: the new review appears instantly; rolls back on error (e.g. the
+  // one-review-per-user rule), then reconciles with the server on settle.
+  const mutation = useMutation({
+    mutationFn: (data: ReviewFormValues) =>
+      createReview(businessId, user!.id, user!.displayName, user!.photoURL, data),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey })
+      const prev = queryClient.getQueryData<ReviewsData>(queryKey)
+      const temp: Review = {
+        id: user!.id,
+        businessId,
+        userId: user!.id,
+        userName: user!.displayName,
+        userPhoto: user!.photoURL,
+        rating: data.rating,
+        comment: data.comment,
+        images: [],
+        ownerReply: null,
+        ownerRepliedAt: null,
+        isVerified: false,
+        reportCount: 0,
+        isHidden: false,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      }
+      queryClient.setQueryData<ReviewsData>(queryKey, (old) => {
+        if (!old || old.pages.length === 0) return old
+        const firstPage = old.pages[0]
+        if (!firstPage) return old
+        const newFirst: ReviewsPage = {
+          reviews: [temp, ...firstPage.reviews],
+          lastDoc: firstPage.lastDoc,
+        }
+        return { ...old, pages: [newFirst, ...old.pages.slice(1)] }
+      })
+      reset()
+      haptics.success()
+      return { prev }
+    },
+    onError: (e, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(queryKey, ctx.prev)
+      const msg = e instanceof Error ? e.message : String(e)
+      const dup = msg.includes('already-reviewed') || msg.includes('permission-denied')
+      toast.error(dup ? 'Ya dejaste una reseña en este negocio' : 'Error al publicar reseña')
+    },
+    onSuccess: () => toast.success('¡Reseña publicada! Gracias por tu opinión.'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey }),
   })
 
   if (!isAuthenticated) {
@@ -50,25 +112,16 @@ export function ReviewForm({ businessId }: ReviewFormProps) {
     )
   }
 
-  const onSubmit = async (data: ReviewFormValues) => {
+  const onSubmit = (data: ReviewFormValues) => {
     if (!user) return
-    try {
-      await createReview(businessId, user.id, user.displayName, user.photoURL, data)
-      toast.success('¡Reseña publicada! Gracias por tu opinión.')
-      reset()
-      queryClient.invalidateQueries({ queryKey: ['reviews', businessId] })
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      const isDuplicate = msg.includes('already-reviewed') || msg.includes('permission-denied')
-      toast.error(
-        isDuplicate ? 'Ya dejaste una reseña en este negocio' : 'Error al publicar reseña',
-      )
-    }
+    mutation.mutate(data)
   }
 
   return (
     <Card style={styles.card}>
-      <Text style={[styles.title, { color: theme.colors.foreground }]}>Dejar una reseña</Text>
+      <Text style={[styles.title, { color: theme.colors.foreground }]} accessibilityRole="header">
+        Dejar una reseña
+      </Text>
 
       <Controller
         control={control}
@@ -101,9 +154,9 @@ export function ReviewForm({ businessId }: ReviewFormProps) {
       />
 
       <Button
-        label={isSubmitting ? 'Publicando…' : 'Publicar reseña'}
+        label={mutation.isPending ? 'Publicando…' : 'Publicar reseña'}
         onPress={handleSubmit(onSubmit)}
-        loading={isSubmitting}
+        loading={mutation.isPending}
         fullWidth
       />
     </Card>
