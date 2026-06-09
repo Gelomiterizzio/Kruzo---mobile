@@ -11,12 +11,22 @@ expo-env.d.ts
 # Native
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
 *.mobileprovision
 android/
 ios/
+
+# Firebase native config (secret per project; provide locally / via EAS secret)
+google-services.json
+GoogleService-Info.plist
+
+# Build artifacts (kept locally in builds/, not committed)
+builds/
+*.apk
+*.aab
 
 # Metro
 .metro-health-check*

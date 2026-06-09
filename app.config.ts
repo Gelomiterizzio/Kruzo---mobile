@@ -1,4 +1,14 @@
 import type { ExpoConfig } from 'expo/config'
+import { existsSync } from 'fs'
+
+// google-services.json is optional: present it to the native build only if it
+// exists (FCM push), otherwise omit so `expo prebuild` doesn't fail. Auth/
+// Firestore/Storage use the JS SDK and don't need it.
+const googleServicesFile = process.env.GOOGLE_SERVICES_JSON
+  ? process.env.GOOGLE_SERVICES_JSON
+  : existsSync('./google-services.json')
+    ? './google-services.json'
+    : undefined
 
 // KRUZO mobile — Expo dynamic config.
 // Dynamic (vs static app.json) so secrets/keys come from the environment
@@ -12,6 +22,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'automatic',
   newArchEnabled: true,
   primaryColor: '#ff4500',
+  icon: './assets/icon.png',
   assetBundlePatterns: ['**/*'],
 
   // Over-the-air updates (EAS Update). runtimeVersion ties a JS bundle to a
@@ -30,7 +41,12 @@ const config: ExpoConfig = {
     package: 'bo.kruzo.app',
     edgeToEdgeEnabled: true,
     backgroundColor: '#ffffff',
-    adaptiveIcon: { backgroundColor: '#ff4500' },
+    adaptiveIcon: {
+      foregroundImage: './assets/adaptive-icon.png',
+      backgroundColor: '#ff4500',
+    },
+    // Firebase Android (FCM push). Omitted automatically when the file is absent.
+    googleServicesFile,
     config: {
       googleMaps: {
         // Required by react-native-maps on Android. Provide via EAS secret env.
@@ -64,6 +80,8 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
+        image: './assets/splash-icon.png',
+        imageWidth: 180,
         backgroundColor: '#ffffff',
         resizeMode: 'contain',
         dark: { backgroundColor: '#0d0a08' },
