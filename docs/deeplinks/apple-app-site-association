@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.bo.kruzo.app",
+        "paths": ["/business/*", "/post/*", "/user/*"]
+      }
+    ]
+  }
+}
