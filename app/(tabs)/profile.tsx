@@ -71,13 +71,13 @@ export default function ProfileScreen() {
         </Card>
 
         <Card padding={0} style={styles.menu}>
-          {isEntrepreneur ? (
-            <MenuRow
-              icon={<LayoutDashboard size={18} color={theme.colors.primary} />}
-              label="Panel de control"
-              onPress={() => router.push('/dashboard')}
-            />
-          ) : null}
+          {/* Auth-only, like web /dashboard: plain users enter to create their
+              first business (a Cloud Function promotes them afterwards). */}
+          <MenuRow
+            icon={<LayoutDashboard size={18} color={theme.colors.primary} />}
+            label={isEntrepreneur ? 'Panel de control' : 'Registra tu negocio'}
+            onPress={() => router.push('/dashboard')}
+          />
           {isAdmin ? (
             <MenuRow
               icon={<Shield size={18} color={theme.gold[600]} />}

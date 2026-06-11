@@ -17,11 +17,11 @@ describe('resolveRedirect (route guards)', () => {
     expect(resolveRedirect('auth', admin)).toBe(HOME_ROUTE)
   })
 
-  it('entrepreneur area requires entrepreneur or admin', () => {
-    expect(resolveRedirect('entrepreneur', anon)).toBe(LOGIN_ROUTE)
-    expect(resolveRedirect('entrepreneur', user)).toBe(HOME_ROUTE)
-    expect(resolveRedirect('entrepreneur', entrepreneur)).toBeNull()
-    expect(resolveRedirect('entrepreneur', admin)).toBeNull()
+  it('protected area (dashboard) requires auth only — web parity', () => {
+    expect(resolveRedirect('protected', anon)).toBe(LOGIN_ROUTE)
+    expect(resolveRedirect('protected', user)).toBeNull()
+    expect(resolveRedirect('protected', entrepreneur)).toBeNull()
+    expect(resolveRedirect('protected', admin)).toBeNull()
   })
 
   it('admin area requires admin', () => {
