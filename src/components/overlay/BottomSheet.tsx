@@ -1,23 +1,23 @@
-import { useEffect, useRef, useCallback } from 'react'
-import { Text, StyleSheet } from 'react-native'
-import {
-  BottomSheetModal,
-  BottomSheetView,
-  BottomSheetBackdrop,
-  type BottomSheetBackdropProps,
-} from '@gorhom/bottom-sheet'
+import { Modal, View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@/providers/ThemeProvider'
 
 export interface BottomSheetProps {
   visible: boolean
   onClose: () => void
   children: React.ReactNode
+  /** Percentage strings ('55%') or absolute numbers; the max becomes the sheet height cap. */
   snapPoints?: (string | number)[]
   title?: string
 }
 
-// Themed wrapper over @gorhom/bottom-sheet's modal. Controlled via `visible`.
-// Requires <BottomSheetModalProvider> at the root (wired in app/_layout).
+// Themed bottom sheet over React Native's core Modal. This replaced the
+// @gorhom/bottom-sheet implementation: in RELEASE builds (RN 0.79 + new arch)
+// BottomSheetModal.present() silently never mounted the sheet — verified via
+// uiautomator on the production APK — which blocked the required Zona select in
+// the business form (no business could ever be created) and the explore zone
+// filter. The core Modal has no such failure mode; we keep the same props so
+// Select/Explore need no changes (drag-to-dismiss is traded for reliability).
 export function BottomSheet({
   visible,
   onClose,
@@ -26,40 +26,63 @@ export function BottomSheet({
   title,
 }: BottomSheetProps) {
   const { theme } = useTheme()
-  const ref = useRef<BottomSheetModal>(null)
+  const { height: windowHeight } = useWindowDimensions()
+  const insets = useSafeAreaInsets()
 
-  useEffect(() => {
-    if (visible) ref.current?.present()
-    else ref.current?.dismiss()
-  }, [visible])
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} opacity={0.5} />
+  const maxHeight = Math.max(
+    ...snapPoints.map((p) =>
+      typeof p === 'number' ? p : (parseFloat(p) / 100) * windowHeight || windowHeight * 0.5,
     ),
-    [],
   )
 
   return (
-    <BottomSheetModal
-      ref={ref}
-      snapPoints={snapPoints}
-      onDismiss={onClose}
-      backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: theme.colors.card }}
-      handleIndicatorStyle={{ backgroundColor: theme.colors.border }}
-    >
-      <BottomSheetView style={styles.content}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable
+        style={styles.backdrop}
+        onPress={onClose}
+        accessibilityRole="button"
+        accessibilityLabel="Cerrar"
+      />
+      <View
+        style={[
+          styles.sheet,
+          {
+            backgroundColor: theme.colors.card,
+            maxHeight,
+            paddingBottom: 32 + insets.bottom,
+          },
+        ]}
+      >
+        <View style={[styles.handle, { backgroundColor: theme.colors.border }]} />
         {title ? (
           <Text style={[styles.title, { color: theme.colors.foreground }]}>{title}</Text>
         ) : null}
         {children}
-      </BottomSheetView>
-    </BottomSheetModal>
+      </View>
+    </Modal>
   )
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 20, paddingBottom: 32, gap: 12 },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    gap: 12,
+  },
+  handle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+  },
   title: { fontSize: 17, fontWeight: '700' },
 })
