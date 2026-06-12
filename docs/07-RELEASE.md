@@ -110,9 +110,19 @@ marca antes de publicar (mismas rutas/medidas).
 JDK 8 del sistema NO sirve (AGP requiere 17+).
 
 Comando final:
-`gradlew generateCodegenArtifactsFromSchema :app:assembleRelease -x lint -x lintVitalRelease -PreactNativeArchitectures=arm64-v8a`
+`gradlew generateCodegenArtifactsFromSchema :app:assembleRelease -x lint -x lintVitalRelease -PreactNativeArchitectures=arm64-v8a,x86_64`
 (release firmado con debug keystore → APK instalable y autónomo, con JS embebido;
 sin credenciales externas).
+
+> ⚠️ **NUNCA compilar sólo `arm64-v8a` para un APK que se vaya a probar en
+> emulador.** Los emuladores de Android Studio en PC son **x86_64**: un APK sin
+> esas libs muere en `MainApplication.onCreate` con
+> `SoLoaderDSONotFoundError: couldn't find DSO to load: libreactnative.so`
+> (la instalación NO falla porque las imágenes modernas anuncian traducción
+> ARM, pero SoLoader no encuentra las libs). Ver `docs/08` — fue la causa #1
+> del crash de arranque auditado. Incluir siempre `arm64-v8a,x86_64`, o quitar
+> el flag para los 4 ABIs. En emulador, instalar con
+> `adb install -r --abi x86_64 app-release.apk` para fijar el ABI primario.
 
 ### Obstáculos reales encontrados y resueltos durante el build
 
