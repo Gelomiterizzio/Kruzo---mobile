@@ -1,11 +1,13 @@
 import { Stack } from 'expo-router'
 import { RouteGuard } from '@/features/auth/RouteGuard'
 
-// Entrepreneur area — requires role entrepreneur or admin (Firestore rules are
-// the real authority; this guard is for UX).
+// Dashboard — auth-only, like the web's /dashboard (proxy.ts). A plain user
+// needs in here to create their first business; the onBusinessWritten Cloud
+// Function promotes them to entrepreneur afterwards. Firestore rules are the
+// real authority; this guard is for UX.
 export default function DashboardLayout() {
   return (
-    <RouteGuard group="entrepreneur">
+    <RouteGuard group="protected">
       <Stack screenOptions={{ headerShown: false }} />
     </RouteGuard>
   )

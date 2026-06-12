@@ -48,23 +48,31 @@ export function useAuth() {
     try {
       const idToken = await getGoogleIdToken()
       await signInWithGoogleCredential(idToken)
+      // onAuthStateChanged fires BEFORE createUserDocument writes the user doc,
+      // so for first-time sign-ins appUser is still null — re-fetch it now.
+      await refreshUser()
     } catch (e) {
       // A user-cancelled flow is not an error worth surfacing.
       if (e instanceof GoogleSignInError && e.code === 'cancelled') return
       setError(parseAuthError(e))
       throw e
     }
-  }, [])
+  }, [refreshUser])
 
-  const register = useCallback(async (email: string, password: string, name: string) => {
-    setError(null)
-    try {
-      await registerWithEmail(email, password, name)
-    } catch (e) {
-      setError(parseAuthError(e))
-      throw e
-    }
-  }, [])
+  const register = useCallback(
+    async (email: string, password: string, name: string) => {
+      setError(null)
+      try {
+        await registerWithEmail(email, password, name)
+        // Same race as loginGoogle: hydrate appUser created moments ago.
+        await refreshUser()
+      } catch (e) {
+        setError(parseAuthError(e))
+        throw e
+      }
+    },
+    [refreshUser],
+  )
 
   const sendReset = useCallback(async (email: string): Promise<boolean> => {
     setError(null)

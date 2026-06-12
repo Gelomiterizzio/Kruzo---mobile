@@ -4,7 +4,6 @@ import { StatusBar } from 'expo-status-bar'
 import * as SplashScreen from 'expo-splash-screen'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 import { OfflineBanner } from '@/components/feedback/OfflineBanner'
 import { ToastHost } from '@/components/overlay/ToastHost'
@@ -52,14 +51,12 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <QueryProvider>
             <ThemeProvider>
-              <BottomSheetModalProvider>
-                <AuthProvider>
-                  <RootNavigator />
-                  <OfflineBanner />
-                  <ToastHost />
-                  <StatusBar style="auto" />
-                </AuthProvider>
-              </BottomSheetModalProvider>
+              <AuthProvider>
+                <RootNavigator />
+                <OfflineBanner />
+                <ToastHost />
+                <StatusBar style="auto" />
+              </AuthProvider>
             </ThemeProvider>
           </QueryProvider>
         </SafeAreaProvider>
