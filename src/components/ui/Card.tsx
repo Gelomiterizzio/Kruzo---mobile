@@ -1,5 +1,10 @@
 import { View, Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native'
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated'
 import { useTheme } from '@/providers/ThemeProvider'
 
 export interface CardProps {
@@ -25,7 +30,11 @@ export function Card({
 }: CardProps) {
   const { theme } = useTheme()
   const scale = useSharedValue(1)
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
+  const opacity = useSharedValue(1)
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }))
 
   const base: ViewStyle = {
     backgroundColor: theme.colors.card,
@@ -48,10 +57,14 @@ export function Card({
     <AnimatedPressable
       onPress={onPress}
       onPressIn={() => {
-        scale.value = withTiming(0.98, { duration: 90 })
+        // Spring press-in (natural overshoot-free settle) + a faint dim so taps on
+        // image-heavy cards still register a clear "pressed" state.
+        scale.value = withSpring(0.965, { damping: 18, stiffness: 320, mass: 0.4 })
+        opacity.value = withTiming(0.92, { duration: 90 })
       }}
       onPressOut={() => {
-        scale.value = withTiming(1, { duration: 130 })
+        scale.value = withSpring(1, { damping: 15, stiffness: 260, mass: 0.5 })
+        opacity.value = withTiming(1, { duration: 140 })
       }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}

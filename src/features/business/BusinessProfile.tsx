@@ -8,7 +8,6 @@ import {
   MapPin,
   Clock,
   BadgeCheck,
-  Heart,
   Share2,
   Eye,
   Truck,
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react-native'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { AnimatedHeart } from '@/components/ui/AnimatedHeart'
 import { Badge } from '@/components/ui/Badge'
 import { RatingStars } from '@/components/ui/RatingStars'
 import { Tabs } from '@/components/ui/Tabs'
@@ -169,13 +169,7 @@ export function BusinessProfile({ business }: { business: Business }) {
             label={fav ? 'Guardado' : 'Guardar'}
             variant="outline"
             size="sm"
-            leftIcon={
-              <Heart
-                size={15}
-                color={fav ? '#ef4444' : theme.colors.foreground}
-                fill={fav ? '#ef4444' : 'transparent'}
-              />
-            }
+            leftIcon={<AnimatedHeart active={fav} size={15} inactiveColor={theme.colors.foreground} />}
             onPress={onFavorite}
             style={styles.ctaBtn}
           />

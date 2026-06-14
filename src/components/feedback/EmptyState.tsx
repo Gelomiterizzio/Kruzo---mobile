@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, type StyleProp, type ViewStyle } from 'react-native'
+import { Text, StyleSheet, type StyleProp, type ViewStyle } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useTheme } from '@/providers/ThemeProvider'
 import { Button } from '@/components/ui/Button'
 
@@ -23,12 +24,19 @@ export function EmptyState({
 }: EmptyStateProps) {
   const { theme } = useTheme()
   return (
-    <View style={[styles.container, style]} accessibilityRole="summary">
-      {icon ?? (
-        <Text style={styles.emoji} allowFontScaling={false}>
-          {emoji}
-        </Text>
-      )}
+    <Animated.View
+      entering={FadeInDown.duration(420).springify().damping(18)}
+      style={[styles.container, style]}
+      accessibilityRole="summary"
+    >
+      {/* Soft tinted disc behind the glyph adds depth instead of a bare emoji. */}
+      <Animated.View style={[styles.disc, { backgroundColor: theme.colors.muted }]}>
+        {icon ?? (
+          <Text style={styles.emoji} allowFontScaling={false}>
+            {emoji}
+          </Text>
+        )}
+      </Animated.View>
       <Text style={[styles.title, { color: theme.colors.foreground }]}>{title}</Text>
       {description ? (
         <Text style={[styles.description, { color: theme.colors.mutedForeground }]}>
@@ -44,13 +52,21 @@ export function EmptyState({
           style={styles.action}
         />
       ) : null}
-    </View>
+    </Animated.View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { alignItems: 'center', justifyContent: 'center', padding: 32, gap: 8 },
-  emoji: { fontSize: 44, marginBottom: 4, textAlign: 'center', includeFontPadding: false },
+  container: { alignItems: 'center', justifyContent: 'center', padding: 32, gap: 10 },
+  disc: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  emoji: { fontSize: 40, textAlign: 'center', includeFontPadding: false },
   title: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
   description: { fontSize: 14, textAlign: 'center', maxWidth: 300, lineHeight: 20 },
   action: { marginTop: 12 },
