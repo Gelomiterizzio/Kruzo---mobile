@@ -65,25 +65,32 @@ export function CategoryGrid({ onSelect }: CategoryGridProps) {
 
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' },
+  // Fixed height (NOT aspectRatio): aspectRatio was being ignored here so the cell
+  // height was driven by content+padding, which made vertical centering unstable.
+  // A fixed height + justifyContent center centers the emoji+label unit
+  // deterministically and identically across the grid.
   cell: {
     width: '31%',
-    aspectRatio: 1,
+    height: 104,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
   },
-  // Tile + label grouped and centered together so the unit sits dead-center in
-  // the square cell (fixes the previous "content sinks to the bottom" look).
-  iconCol: { alignItems: 'center', justifyContent: 'center', gap: 9 },
+  // Tile + label centered together as one unit.
+  iconCol: { alignItems: 'center', justifyContent: 'center', gap: 8 },
+  // The tile flex-centers the emoji; a line box slightly taller than the glyph
+  // (lineHeight 30 vs fontSize 25) lets flexbox seat it true-center on Android.
   iconTile: {
     width: TILE,
     height: TILE,
     borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
     overflow: 'hidden',
   },
   emoji: {
-    flex: 1,
-    fontSize: 26,
+    fontSize: 25,
+    lineHeight: 30,
     textAlign: 'center',
     textAlignVertical: 'center',
     includeFontPadding: false,
@@ -92,7 +99,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '600',
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 13,
     includeFontPadding: false,
   },
 })
