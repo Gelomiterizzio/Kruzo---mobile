@@ -6,6 +6,22 @@ import { storage } from './firebase'
 // into a Blob before upload. Storage paths and the <5MB rule (storage.rules) are
 // unchanged — same backend bucket.
 
+// Mirrors the <5MB limit enforced by storage.rules. Enforcing it client-side too
+// gives a clear, immediate error instead of an opaque permission-denied from the
+// rules after the bytes have already started uploading.
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
+/** Thrown when a picked image exceeds MAX_IMAGE_BYTES. Carries a user-facing message. */
+export class ImageTooLargeError extends Error {
+  constructor(public readonly bytes: number) {
+    super(
+      `La imagen pesa ${(bytes / 1024 / 1024).toFixed(1)} MB y supera el máximo de 5 MB. ` +
+        'Elige una imagen más liviana.',
+    )
+    this.name = 'ImageTooLargeError'
+  }
+}
+
 function contentTypeFromUri(uri: string): string {
   const ext = uri.split('.').pop()?.toLowerCase()
   if (ext === 'png') return 'image/png'
@@ -25,6 +41,7 @@ export async function uploadImageFromUri(
   onProgress?: (p: number) => void,
 ): Promise<string> {
   const blob = await uriToBlob(uri)
+  if (blob.size > MAX_IMAGE_BYTES) throw new ImageTooLargeError(blob.size)
   const storageRef = ref(storage, path)
   const task = uploadBytesResumable(storageRef, blob, { contentType: contentTypeFromUri(uri) })
   return new Promise((resolve, reject) => {

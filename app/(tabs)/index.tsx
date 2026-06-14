@@ -1,4 +1,5 @@
 import { ScrollView, View, Text, StyleSheet } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import { Sun, Moon, Bell } from 'lucide-react-native'
 import { Screen } from '@/components/layout/Screen'
@@ -51,9 +52,16 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-        <HomeHero />
+        {/* Gentle staggered entrance so the home assembles on open (fires once;
+            tab screens stay mounted, so it won't replay on tab switches). */}
+        <Animated.View entering={FadeInDown.duration(420).springify().damping(18)}>
+          <HomeHero />
+        </Animated.View>
 
-        <View style={styles.section}>
+        <Animated.View
+          entering={FadeInDown.delay(90).duration(420).springify().damping(18)}
+          style={styles.section}
+        >
           <SectionHeader
             title="Explorar categorías"
             subtitle="Encuentra lo que necesitas"
@@ -63,7 +71,7 @@ export default function HomeScreen() {
           <View style={styles.categoryWrap}>
             <CategoryGrid />
           </View>
-        </View>
+        </Animated.View>
 
         <FeaturedRow title="Negocios destacados" subtitle="Seleccionados para ti" featured />
         <FeaturedRow title="Comida & Repostería" category="comida" />

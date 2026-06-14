@@ -38,7 +38,14 @@ export const BusinessCard = memo(function BusinessCard({ business, onPress }: Bu
     >
       <View style={styles.coverWrap}>
         {cover ? (
-          <Image source={{ uri: cover }} style={styles.cover} contentFit="cover" transition={150} />
+          <Image
+            source={{ uri: cover }}
+            style={styles.cover}
+            contentFit="cover"
+            transition={150}
+            cachePolicy="memory-disk"
+            recyclingKey={business.id}
+          />
         ) : (
           <View
             style={[styles.cover, styles.coverFallback, { backgroundColor: theme.colors.muted }]}
@@ -69,7 +76,7 @@ export const BusinessCard = memo(function BusinessCard({ business, onPress }: Bu
         <View style={styles.ratingRow}>
           <RatingStars value={business.rating} size={13} />
           <Text style={[styles.ratingText, { color: theme.colors.mutedForeground }]}>
-            {business.rating.toFixed(1)} ({formatNumber(business.reviewCount)})
+            {(business.rating ?? 0).toFixed(1)} ({formatNumber(business.reviewCount)})
           </Text>
         </View>
       </View>
@@ -82,7 +89,7 @@ const styles = StyleSheet.create({
   coverWrap: { position: 'relative' },
   cover: { width: '100%', aspectRatio: 16 / 10 },
   coverFallback: { alignItems: 'center', justifyContent: 'center' },
-  coverEmoji: { fontSize: 40 },
+  coverEmoji: { fontSize: 40, includeFontPadding: false, textAlign: 'center' },
   featured: { position: 'absolute', top: 8, left: 8 },
   body: { padding: 12, gap: 4 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },

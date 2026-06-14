@@ -41,6 +41,8 @@ export const PostCard = memo(function PostCard({ post, onPress }: PostCardProps)
             style={styles.image}
             contentFit="cover"
             transition={150}
+            cachePolicy="memory-disk"
+            recyclingKey={post.id}
           />
         ) : (
           <View style={[styles.image, styles.fallback, { backgroundColor: theme.colors.muted }]}>

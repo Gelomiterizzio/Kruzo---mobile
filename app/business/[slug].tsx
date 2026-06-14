@@ -1,9 +1,9 @@
 import { useLocalSearchParams } from 'expo-router'
 import { Screen } from '@/components/layout/Screen'
 import { Header } from '@/components/layout/Header'
-import { LoadingState } from '@/components/feedback/LoadingState'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { BusinessProfile } from '@/features/business/BusinessProfile'
+import { BusinessProfileSkeleton } from '@/features/business/BusinessProfileSkeleton'
 import { useBusinessBySlug } from '@/hooks/useDocQueries'
 
 export default function BusinessDetailScreen() {
@@ -14,7 +14,7 @@ export default function BusinessDetailScreen() {
     <Screen edges={['bottom']} padded={false}>
       <Header />
       {isLoading ? (
-        <LoadingState fullScreen label="Cargando negocio…" />
+        <BusinessProfileSkeleton />
       ) : !business ? (
         <EmptyState
           title="Negocio no encontrado"

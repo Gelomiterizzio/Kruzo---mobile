@@ -149,6 +149,67 @@ source.properties file`. Reinstalado (descarga reanudable del paquete oficial
 > **Reproducir:** requiere ruta sin espacios, NDK 27.1.12297006 + CMake 3.22.1
 > completos, JDK 17+ (JBR 21). Pasos exactos arriba.
 
+## Área 11 — Firma de release & publicación (camino correcto) — ⭐ LEER ANTES DE PUBLICAR
+
+El APK local de `builds/` está firmado con el **debug keystore** (ver Área 10). Es
+válido para pruebas internas (emulador/dispositivo propio) pero **Google Play lo
+RECHAZA**: necesita una clave de subida (upload key) estable y, una vez subido, no
+podrás actualizar la app si pierdes esa clave. El bloque `signingConfigs` de
+`android/app/build.gradle` **no es la fuente de verdad** — `android/` está
+gitignored y se regenera en cada `expo prebuild`. **No edites ahí la firma.**
+
+**Camino recomendado (EAS Managed Credentials → AAB firmado):** es el flujo que ya
+declara `eas.json` (`production` → `app-bundle` + `autoIncrement`; `submit` →
+track `internal`). EAS genera/custodia el keystore de release en la nube y firma el
+`.aab` — el debug keystore local queda fuera del circuito.
+
+```bash
+# 1. Login + vincular el proyecto (crea extra.eas.projectId en app.config.ts)
+eas login
+eas init
+
+# 2. (Una sola vez) Generar/gestionar credenciales de Android. Acepta que EAS
+#    cree el keystore de release, o sube el tuyo. NO se commitea nunca.
+eas credentials            # Android → Keystore → Set up a new keystore
+
+# 3. Build de producción firmado (Android App Bundle .aab)
+eas build --profile production --platform android
+
+# 4. Subir a Play (track internal configurado en eas.json → submit.production)
+eas submit --profile production --platform android --latest
+```
+
+**Play App Signing:** al crear la app en Play Console, deja que Google gestione la
+clave de firma de la app y entrega tu *upload key* (la de EAS). Tras el primer
+upload, registra el **SHA-1/SHA-256 de la clave de firma de Play** en:
+
+- el cliente **OAuth Android** de Google Cloud (Sign-In en builds de tienda),
+- la **Maps SDK** API key (restricción por package + SHA-1),
+- `docs/deeplinks/assetlinks.json` (verificación de App Links del APK de tienda).
+
+> Los SHA de la Área 4/10 son del **debug keystore**; sólo sirven para builds
+> locales. Los de release/Play son distintos y se obtienen tras el primer upload.
+
+**Alternativa (build local firmado para release, sin EAS):** genera un keystore
+propio y compílalo fuera del repo (`*.keystore` está gitignored):
+
+```bash
+keytool -genkeypair -v -keystore kruzo-upload.keystore -alias kruzo \
+  -keyalg RSA -keysize 2048 -validity 10000
+# Pasa store/keyPass por variables o gradle.properties (NUNCA al repo) y compila
+# ./gradlew :app:bundleRelease  (AAB)  o  :app:assembleRelease  (APK)
+```
+
+### Backend que debe estar desplegado para que la app de tienda funcione
+
+- **Reglas Firestore endurecidas** — ✅ desplegadas.
+- **Cloud Functions** `onReviewWritten`, `onUserFavoritesWritten`,
+  `onBusinessWritten` — ✅ desplegadas.
+- **`deleteAccount` (callable, NUEVA)** — ⏳ requiere
+  `firebase deploy --only functions:deleteAccount`. Da soporte al requisito de
+  **eliminación de cuenta in-app** de Google Play (Settings → Zona de peligro).
+  Sin este deploy, el botón "Eliminar cuenta" devolverá `functions/internal`.
+
 ## Clasificación de preparación
 
 | Dimensión          | Estado                                                                    |
@@ -166,5 +227,8 @@ source.properties file`. Reinstalado (descarga reanudable del paquete oficial
 2. **`google-services.json`** (Firebase consola) para FCM.
 3. **Google OAuth** (cliente Android+Web, SHA-1) para Sign-In en dispositivo.
 4. **Maps API key** (Google Cloud) para el mapa.
-5. **Keystore de release** propio + **Play Console** para publicar.
+5. **Keystore de release** + **Play Console** para publicar → usar **EAS Managed
+   Credentials** (camino exacto en **Área 11**); el debug keystore NO sirve para Play.
 6. **Hosting** de `assetlinks.json` / AASA en `kruzo.bo` para verificación de links.
+7. **Deploy de `deleteAccount`** (`firebase deploy --only functions:deleteAccount`)
+   para habilitar la eliminación de cuenta in-app exigida por Google Play.

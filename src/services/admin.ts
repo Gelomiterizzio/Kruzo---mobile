@@ -1,5 +1,6 @@
 import { collection, query, orderBy, limit, getDocs, doc, updateDoc } from 'firebase/firestore'
 import { db } from './firebase'
+import { mapBusiness } from './firestore'
 import type { AppUser, UserRole } from '@/types/user'
 import type { Business, BusinessStatus } from '@/types/business'
 import type { Post, PostStatus } from '@/types/post'
@@ -29,7 +30,7 @@ export async function getAllBusinesses(max = 100): Promise<Business[]> {
   const snap = await getDocs(
     query(collection(db, 'businesses'), orderBy('createdAt', 'desc'), limit(max)),
   )
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Business)
+  return snap.docs.map(mapBusiness)
 }
 
 export async function setBusinessStatus(id: string, status: BusinessStatus) {

@@ -4,6 +4,7 @@ import * as ExpoImagePicker from 'expo-image-picker'
 import { X, ImagePlus } from 'lucide-react-native'
 import { useTheme } from '@/providers/ThemeProvider'
 import { logger } from '@/lib/logger'
+import { MAX_IMAGE_BYTES } from '@/services/storage'
 
 export interface ImagePickerFieldProps {
   label?: string
@@ -42,8 +43,20 @@ export function ImagePickerField({
         quality: 0.8,
       })
       if (!result.canceled) {
-        const uris = result.assets.map((a) => a.uri)
-        onChange([...value, ...uris].slice(0, maxFiles))
+        // Reject oversized images up front (storage.rules also enforces <5MB, but
+        // catching it here avoids a wasted upload and gives a clear message).
+        const tooBig = result.assets.filter((a) => (a.fileSize ?? 0) > MAX_IMAGE_BYTES)
+        const ok = result.assets.filter((a) => (a.fileSize ?? 0) <= MAX_IMAGE_BYTES)
+        if (tooBig.length > 0) {
+          Alert.alert(
+            'Imagen muy pesada',
+            `${tooBig.length === 1 ? 'Una imagen supera' : `${tooBig.length} imágenes superan`} el máximo de 5 MB y ${tooBig.length === 1 ? 'fue ignorada' : 'fueron ignoradas'}. Elige imágenes más livianas.`,
+          )
+        }
+        if (ok.length > 0) {
+          const uris = ok.map((a) => a.uri)
+          onChange([...value, ...uris].slice(0, maxFiles))
+        }
       }
     } catch (e) {
       logger.warn('image pick failed', e)

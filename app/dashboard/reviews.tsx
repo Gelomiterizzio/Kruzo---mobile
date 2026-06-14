@@ -20,9 +20,9 @@ export default function DashboardReviewsScreen() {
     <Card style={styles.summary}>
       <View style={styles.summaryLeft}>
         <Text style={[styles.big, { color: theme.colors.foreground }]}>
-          {business.rating.toFixed(1)}
+          {(business.rating ?? 0).toFixed(1)}
         </Text>
-        <RatingStars value={Math.round(business.rating)} size={14} />
+        <RatingStars value={business.rating} size={14} />
         <Text style={[styles.muted, { color: theme.colors.mutedForeground }]}>
           {formatNumber(business.reviewCount)} reseñas
         </Text>

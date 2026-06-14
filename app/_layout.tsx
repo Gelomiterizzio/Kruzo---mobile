@@ -30,7 +30,14 @@ function RootNavigator() {
   if (loading) return null
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        // Consistent native push transition app-wide (premium, smooth).
+        animation: 'slide_from_right',
+        animationDuration: 220,
+      }}
+    >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="dashboard" />
@@ -38,8 +45,9 @@ function RootNavigator() {
       <Stack.Screen name="business/[slug]" />
       <Stack.Screen name="post/[id]" />
       <Stack.Screen name="user/[id]" />
-      <Stack.Screen name="settings" />
-      <Stack.Screen name="notifications" />
+      {/* Panel-style screens slide up from the bottom like a sheet. */}
+      <Stack.Screen name="settings" options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="notifications" options={{ animation: 'slide_from_bottom' }} />
     </Stack>
   )
 }

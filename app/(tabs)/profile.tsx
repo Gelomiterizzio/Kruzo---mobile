@@ -45,7 +45,9 @@ export default function ProfileScreen() {
     )
   }
 
-  const role = ROLE_META[user.role]
+  // Defensive: if a doc ever carries an unexpected role string, fall back to the
+  // neutral "Usuario" chip instead of crashing on an undefined ROLE_META entry.
+  const role = ROLE_META[user.role] ?? ROLE_META.user
 
   return (
     <Screen edges={['top']} padded={false}>

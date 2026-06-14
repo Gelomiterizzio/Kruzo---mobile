@@ -15,7 +15,7 @@ import { toast } from '@/components/overlay/toast'
 import { useTheme } from '@/providers/ThemeProvider'
 import { useAuth } from '@/hooks/useAuth'
 import { createBusiness, updateBusiness, linkBusinessToOwner } from '@/services/firestore'
-import { uploadBusinessImages } from '@/services/storage'
+import { uploadBusinessImages, ImageTooLargeError } from '@/services/storage'
 import { businessSchema, type BusinessFormValues, type BusinessFormInput } from '@/utils/validators'
 import { BUSINESS_CATEGORIES, SCZ_ZONES } from '@/constants'
 import type { Business } from '@/types/business'
@@ -119,8 +119,10 @@ export function BusinessForm({ existing }: { existing?: Business }) {
 
       await refreshUser()
       router.replace('/dashboard/business')
-    } catch {
-      toast.error('Error al guardar negocio. Inténtalo de nuevo.')
+    } catch (e) {
+      toast.error(
+        e instanceof ImageTooLargeError ? e.message : 'Error al guardar negocio. Inténtalo de nuevo.',
+      )
     } finally {
       setSaving(false)
     }

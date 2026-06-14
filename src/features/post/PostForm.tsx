@@ -14,7 +14,7 @@ import { toast } from '@/components/overlay/toast'
 import { useTheme } from '@/providers/ThemeProvider'
 import { useAuth } from '@/hooks/useAuth'
 import { createPost, updatePost } from '@/services/firestore'
-import { uploadPostImages } from '@/services/storage'
+import { uploadPostImages, ImageTooLargeError } from '@/services/storage'
 import { postSchema, type PostFormValues, type PostFormInput } from '@/utils/validators'
 import { POST_CATEGORIES, PRICE_TYPE_LABELS } from '@/constants'
 import type { Business } from '@/types/business'
@@ -112,8 +112,10 @@ export function PostForm({ business, existing }: { business: Business; existing?
         await updatePost(postId, { images: urls })
       }
       router.replace('/dashboard/posts')
-    } catch {
-      toast.error('Error al guardar publicación')
+    } catch (e) {
+      toast.error(
+        e instanceof ImageTooLargeError ? e.message : 'Error al guardar publicación',
+      )
     } finally {
       setSaving(false)
     }
