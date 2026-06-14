@@ -24,7 +24,11 @@ export function EmptyState({
   const { theme } = useTheme()
   return (
     <View style={[styles.container, style]} accessibilityRole="summary">
-      {icon ?? <Text style={styles.emoji}>{emoji}</Text>}
+      {icon ?? (
+        <Text style={styles.emoji} allowFontScaling={false}>
+          {emoji}
+        </Text>
+      )}
       <Text style={[styles.title, { color: theme.colors.foreground }]}>{title}</Text>
       {description ? (
         <Text style={[styles.description, { color: theme.colors.mutedForeground }]}>
@@ -46,7 +50,7 @@ export function EmptyState({
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', justifyContent: 'center', padding: 32, gap: 8 },
-  emoji: { fontSize: 44, marginBottom: 4 },
+  emoji: { fontSize: 44, marginBottom: 4, textAlign: 'center', includeFontPadding: false },
   title: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
   description: { fontSize: 14, textAlign: 'center', maxWidth: 300, lineHeight: 20 },
   action: { marginTop: 12 },

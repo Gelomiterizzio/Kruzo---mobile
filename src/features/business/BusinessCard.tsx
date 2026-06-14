@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   coverWrap: { position: 'relative' },
   cover: { width: '100%', aspectRatio: 16 / 10 },
   coverFallback: { alignItems: 'center', justifyContent: 'center' },
-  coverEmoji: { fontSize: 40 },
+  coverEmoji: { fontSize: 40, includeFontPadding: false, textAlign: 'center' },
   featured: { position: 'absolute', top: 8, left: 8 },
   body: { padding: 12, gap: 4 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },

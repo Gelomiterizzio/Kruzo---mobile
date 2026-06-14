@@ -57,7 +57,13 @@ export function Chip({
         style,
       ]}
     >
-      {emoji ? <Text style={styles.emoji}>{emoji}</Text> : leftIcon}
+      {emoji ? (
+        <Text style={styles.emoji} allowFontScaling={false}>
+          {emoji}
+        </Text>
+      ) : (
+        leftIcon
+      )}
       <Text
         style={[
           styles.label,
@@ -80,6 +86,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: StyleSheet.hairlineWidth,
   },
-  emoji: { fontSize: 14 },
+  emoji: { fontSize: 14, lineHeight: 18, includeFontPadding: false, textAlignVertical: 'center' },
   label: { fontSize: 13, fontWeight: '600' },
 })
