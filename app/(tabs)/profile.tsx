@@ -1,4 +1,5 @@
 import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 import { useRouter } from 'expo-router'
 import {
   LayoutDashboard,
@@ -59,57 +60,64 @@ export default function ProfileScreen() {
           Perfil
         </Text>
 
-        <Card style={styles.profileCard}>
-          <Avatar uri={user.photoURL} name={user.displayName} size={64} ring />
-          <View style={styles.profileMeta}>
-            <Text style={[styles.name, { color: theme.colors.foreground }]} numberOfLines={1}>
-              {user.displayName}
-            </Text>
-            <Text style={[styles.email, { color: theme.colors.mutedForeground }]} numberOfLines={1}>
-              {user.email}
-            </Text>
-            <Badge label={role.label} variant={role.variant} style={styles.roleBadge} />
-          </View>
-        </Card>
+        <Animated.View entering={FadeInDown.duration(380).springify().damping(18)}>
+          <Card style={styles.profileCard}>
+            <Avatar uri={user.photoURL} name={user.displayName} size={64} ring />
+            <View style={styles.profileMeta}>
+              <Text style={[styles.name, { color: theme.colors.foreground }]} numberOfLines={1}>
+                {user.displayName}
+              </Text>
+              <Text
+                style={[styles.email, { color: theme.colors.mutedForeground }]}
+                numberOfLines={1}
+              >
+                {user.email}
+              </Text>
+              <Badge label={role.label} variant={role.variant} style={styles.roleBadge} />
+            </View>
+          </Card>
+        </Animated.View>
 
-        <Card padding={0} style={styles.menu}>
-          {/* Auth-only, like web /dashboard: plain users enter to create their
+        <Animated.View entering={FadeInDown.delay(80).duration(380).springify().damping(18)}>
+          <Card padding={0} style={styles.menu}>
+            {/* Auth-only, like web /dashboard: plain users enter to create their
               first business (a Cloud Function promotes them afterwards). */}
-          <MenuRow
-            icon={<LayoutDashboard size={18} color={theme.colors.primary} />}
-            label={isEntrepreneur ? 'Panel de control' : 'Registra tu negocio'}
-            onPress={() => router.push('/dashboard')}
-          />
-          {isAdmin ? (
             <MenuRow
-              icon={<Shield size={18} color={theme.gold[600]} />}
-              label="Administración"
-              onPress={() => router.push('/admin')}
+              icon={<LayoutDashboard size={18} color={theme.colors.primary} />}
+              label={isEntrepreneur ? 'Panel de control' : 'Registra tu negocio'}
+              onPress={() => router.push('/dashboard')}
             />
-          ) : null}
-          <MenuRow
-            icon={<Bell size={18} color={theme.colors.foreground} />}
-            label="Notificaciones"
-            onPress={() => router.push('/notifications')}
-          />
-          <MenuRow
-            icon={<Settings size={18} color={theme.colors.foreground} />}
-            label="Configuración"
-            onPress={() => router.push('/settings')}
-          />
-          <MenuRow
-            icon={
-              scheme === 'dark' ? (
-                <Sun size={18} color={theme.colors.foreground} />
-              ) : (
-                <Moon size={18} color={theme.colors.foreground} />
-              )
-            }
-            label={scheme === 'dark' ? 'Tema claro' : 'Tema oscuro'}
-            onPress={() => setPreference(scheme === 'dark' ? 'light' : 'dark')}
-            last
-          />
-        </Card>
+            {isAdmin ? (
+              <MenuRow
+                icon={<Shield size={18} color={theme.gold[600]} />}
+                label="Administración"
+                onPress={() => router.push('/admin')}
+              />
+            ) : null}
+            <MenuRow
+              icon={<Bell size={18} color={theme.colors.foreground} />}
+              label="Notificaciones"
+              onPress={() => router.push('/notifications')}
+            />
+            <MenuRow
+              icon={<Settings size={18} color={theme.colors.foreground} />}
+              label="Configuración"
+              onPress={() => router.push('/settings')}
+            />
+            <MenuRow
+              icon={
+                scheme === 'dark' ? (
+                  <Sun size={18} color={theme.colors.foreground} />
+                ) : (
+                  <Moon size={18} color={theme.colors.foreground} />
+                )
+              }
+              label={scheme === 'dark' ? 'Tema claro' : 'Tema oscuro'}
+              onPress={() => setPreference(scheme === 'dark' ? 'light' : 'dark')}
+              last
+            />
+          </Card>
+        </Animated.View>
 
         <Button
           label="Cerrar sesión"
@@ -140,12 +148,14 @@ function MenuRow({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={[
+      android_ripple={{ color: theme.colors.border }}
+      style={({ pressed }) => [
         styles.menuRow,
         !last && {
           borderBottomColor: theme.colors.border,
           borderBottomWidth: StyleSheet.hairlineWidth,
         },
+        pressed && { backgroundColor: theme.colors.muted },
       ]}
     >
       {icon}
