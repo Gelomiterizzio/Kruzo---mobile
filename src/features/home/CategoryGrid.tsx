@@ -8,6 +8,8 @@ export interface CategoryGridProps {
   onSelect?: (key: string) => void
 }
 
+const TILE = 52
+
 // Low-alpha tint of a category's brand color, used as the icon-tile background.
 // The 6-digit hex from constants + '22' ≈ 13% opacity reads well in both themes.
 const tint = (hex: string) => `${hex}22`
@@ -36,21 +38,25 @@ export function CategoryGrid({ onSelect }: CategoryGridProps) {
               backgroundColor: theme.colors.card,
               borderColor: theme.colors.border,
               borderRadius: theme.radius.xl,
-              opacity: pressed ? 0.85 : 1,
+              opacity: pressed ? 0.9 : 1,
               transform: [{ scale: pressed ? 0.97 : 1 }],
             },
           ]}
         >
-          {/* Colored icon tile gives the emoji a defined, perfectly-centered box
-              (includeFontPadding:false removes Android's asymmetric glyph padding). */}
-          <View style={[styles.iconTile, { backgroundColor: tint(c.gradient[0]) }]}>
-            <Text style={styles.emoji} allowFontScaling={false}>
-              {c.emoji}
+          {/* The icon column is centered as one optical unit. The emoji Text fills
+              the tile (flex:1) and is centered on BOTH axes via Android text
+              alignment — the most reliable glyph-centering technique (no lineHeight
+              guesswork, no asymmetric includeFontPadding). */}
+          <View style={styles.iconCol}>
+            <View style={[styles.iconTile, { backgroundColor: tint(c.gradient[0]) }]}>
+              <Text style={styles.emoji} allowFontScaling={false}>
+                {c.emoji}
+              </Text>
+            </View>
+            <Text style={[styles.label, { color: theme.colors.foreground }]} numberOfLines={1}>
+              {c.label}
             </Text>
           </View>
-          <Text style={[styles.label, { color: theme.colors.foreground }]} numberOfLines={1}>
-            {c.label}
-          </Text>
         </Pressable>
       ))}
     </View>
@@ -64,22 +70,29 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     borderWidth: StyleSheet.hairlineWidth,
   },
+  // Tile + label grouped and centered together so the unit sits dead-center in
+  // the square cell (fixes the previous "content sinks to the bottom" look).
+  iconCol: { alignItems: 'center', justifyContent: 'center', gap: 9 },
   iconTile: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: TILE,
+    height: TILE,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   emoji: {
-    fontSize: 24,
-    lineHeight: 28,
+    flex: 1,
+    fontSize: 26,
     textAlign: 'center',
     textAlignVertical: 'center',
     includeFontPadding: false,
   },
-  label: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  label: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 14,
+    includeFontPadding: false,
+  },
 })

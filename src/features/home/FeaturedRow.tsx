@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { View, FlatList, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { SectionHeader } from '@/components/ui/SectionHeader'
@@ -18,6 +19,15 @@ export interface FeaturedRowProps {
 export function FeaturedRow({ title, subtitle, featured, category }: FeaturedRowProps) {
   const router = useRouter()
   const { businesses, loading } = useBusinesses({ featured, category, pageSize: 8 })
+
+  const renderItem = useCallback(
+    ({ item }: { item: Business }) => (
+      <View style={styles.card}>
+        <BusinessCard business={item} />
+      </View>
+    ),
+    [],
+  )
 
   if (!loading && businesses.length === 0) return null
 
@@ -52,11 +62,11 @@ export function FeaturedRow({ title, subtitle, featured, category }: FeaturedRow
           keyExtractor={(b: Business) => b.id}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.row}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <BusinessCard business={item} />
-            </View>
-          )}
+          renderItem={renderItem}
+          removeClippedSubviews
+          initialNumToRender={4}
+          maxToRenderPerBatch={4}
+          windowSize={5}
         />
       )}
     </View>

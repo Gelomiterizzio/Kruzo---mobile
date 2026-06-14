@@ -38,7 +38,14 @@ export const BusinessCard = memo(function BusinessCard({ business, onPress }: Bu
     >
       <View style={styles.coverWrap}>
         {cover ? (
-          <Image source={{ uri: cover }} style={styles.cover} contentFit="cover" transition={150} />
+          <Image
+            source={{ uri: cover }}
+            style={styles.cover}
+            contentFit="cover"
+            transition={150}
+            cachePolicy="memory-disk"
+            recyclingKey={business.id}
+          />
         ) : (
           <View
             style={[styles.cover, styles.coverFallback, { backgroundColor: theme.colors.muted }]}
