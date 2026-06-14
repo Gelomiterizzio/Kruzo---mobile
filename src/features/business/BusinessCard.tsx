@@ -69,7 +69,7 @@ export const BusinessCard = memo(function BusinessCard({ business, onPress }: Bu
         <View style={styles.ratingRow}>
           <RatingStars value={business.rating} size={13} />
           <Text style={[styles.ratingText, { color: theme.colors.mutedForeground }]}>
-            {business.rating.toFixed(1)} ({formatNumber(business.reviewCount)})
+            {(business.rating ?? 0).toFixed(1)} ({formatNumber(business.reviewCount)})
           </Text>
         </View>
       </View>

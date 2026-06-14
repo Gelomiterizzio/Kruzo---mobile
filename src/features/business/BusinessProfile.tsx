@@ -128,7 +128,7 @@ export function BusinessProfile({ business }: { business: Business }) {
         <View style={styles.stats}>
           <View style={styles.statItem}>
             <RatingStars value={business.rating} size={14} />
-            <Text style={styles.statStrong}>{business.rating.toFixed(1)}</Text>
+            <Text style={styles.statStrong}>{(business.rating ?? 0).toFixed(1)}</Text>
             <Text style={styles.statMuted}>({formatNumber(business.reviewCount)})</Text>
           </View>
           <View style={styles.statItem}>
@@ -218,8 +218,8 @@ export function BusinessProfile({ business }: { business: Business }) {
         <View style={styles.tabLead}>
           <Card style={styles.summaryCard}>
             <View style={styles.summaryLeft}>
-              <Text style={styles.summaryBig}>{business.rating.toFixed(1)}</Text>
-              <RatingStars value={Math.round(business.rating)} size={14} />
+              <Text style={styles.summaryBig}>{(business.rating ?? 0).toFixed(1)}</Text>
+              <RatingStars value={business.rating} size={14} />
               <Text style={styles.statMuted}>{formatNumber(business.reviewCount)} reseñas</Text>
             </View>
             <View style={styles.summaryBars}>

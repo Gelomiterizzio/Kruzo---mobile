@@ -2,6 +2,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app'
 import { initializeAuth, getAuth, getReactNativePersistence, type Auth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
+import { getFunctions } from 'firebase/functions'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { env } from '@/lib/env'
 
@@ -34,4 +35,8 @@ if (isFirstInit) {
 export { auth }
 export const db = getFirestore(app)
 export const storage = getStorage(app)
+// Callable Cloud Functions live in southamerica-east1 (see web/functions —
+// setGlobalOptions). The region MUST match or the callable resolves to us-central1
+// and 404s.
+export const functions = getFunctions(app, 'southamerica-east1')
 export default app

@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { ProfileSettingsForm } from '@/features/settings/ProfileSettingsForm'
+import { DeleteAccountSection } from '@/features/settings/DeleteAccountSection'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/providers/ThemeProvider'
 
@@ -38,6 +39,7 @@ export default function SettingsScreen() {
             leftIcon={<LogOut size={16} color={theme.colors.destructive} />}
             onPress={signOut}
           />
+          <DeleteAccountSection />
         </ScrollView>
       )}
     </Screen>

@@ -22,7 +22,10 @@ export function RatingStars({
   testID,
 }: RatingStarsProps) {
   const { theme } = useTheme()
-  const filledCount = readonly ? Math.round(value) : value
+  // Defensive: legacy/partial docs may carry an undefined/NaN rating. Coerce to a
+  // finite number so Math.round and the fill comparison never produce NaN.
+  const safeValue = Number.isFinite(value) ? value : 0
+  const filledCount = readonly ? Math.round(safeValue) : safeValue
   const stars = Array.from({ length: max }, (_, i) => i)
 
   return (
@@ -30,7 +33,7 @@ export function RatingStars({
       style={styles.row}
       testID={testID}
       accessibilityRole={readonly ? 'image' : 'adjustable'}
-      accessibilityLabel={`Calificación: ${value} de ${max}`}
+      accessibilityLabel={`Calificación: ${safeValue} de ${max}`}
     >
       {stars.map((i) => {
         const filled = i < filledCount

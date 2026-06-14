@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
+import { Alert } from 'react-native'
 import { type User } from 'firebase/auth'
-import { onAuthChange } from '@/services/auth'
+import { onAuthChange, logout } from '@/services/auth'
 import { getUserById } from '@/services/firestore'
 import { useStore } from '@/store/useStore'
 import type { AppUser } from '@/types/user'
@@ -33,6 +34,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (uid: string) => {
       try {
         const u = await getUserById(uid)
+        // Banned users are signed out client-side and told why. Firestore rules
+        // already block their writes; this prevents a banned account from sitting
+        // in an authenticated-but-useless state and surfaces the reason instead.
+        if (u?.isBanned) {
+          Alert.alert(
+            'Cuenta suspendida',
+            u.banReason?.trim()
+              ? u.banReason
+              : 'Tu cuenta ha sido suspendida. Si crees que es un error, contáctanos.',
+          )
+          await logout()
+          setAppUser(null)
+          setStoreUser(null)
+          setFavorites([])
+          return
+        }
         setAppUser(u)
         setStoreUser(u)
         if (u?.favoriteIds) setFavorites(u.favoriteIds)

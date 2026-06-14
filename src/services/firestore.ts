@@ -28,6 +28,31 @@ import { uniqueSlug } from '@/utils/formatters'
 // composite indexes. Do not change the constraints without updating
 // web/firestore.indexes.json (the shared backend).
 
+// Defensive read mapper: legacy/partial business docs (e.g. created before the
+// aggregate Cloud Functions ran, or via the admin SDK) may lack the numeric
+// counters or array fields. Normalize them on read so render sites can safely
+// call `.toFixed`, `.length`, etc. without per-call guards. The aggregate fields
+// (rating/reviewCount/…) are still WRITTEN only by Cloud Functions — this only
+// fills missing values with 0/[] for display.
+export function mapBusiness(snap: DocumentSnapshot): Business {
+  const d = (snap.data() ?? {}) as Record<string, unknown>
+  const num = (v: unknown) => (typeof v === 'number' && !Number.isNaN(v) ? v : 0)
+  const arr = (v: unknown) => (Array.isArray(v) ? v : [])
+  return {
+    ...d,
+    id: snap.id,
+    rating: num(d.rating),
+    reviewCount: num(d.reviewCount),
+    viewCount: num(d.viewCount),
+    favoriteCount: num(d.favoriteCount),
+    shareCount: num(d.shareCount),
+    contactCount: num(d.contactCount),
+    category: arr(d.category),
+    images: arr(d.images),
+    tags: arr(d.tags),
+  } as Business
+}
+
 // ─── USERS ──────────────────────────────────────────────────────────────────
 
 export async function getUserById(uid: string): Promise<AppUser | null> {
@@ -54,12 +79,12 @@ export async function getBusinessBySlug(slug: string): Promise<Business | null> 
   const snap = await getDocs(q)
   const d = snap.docs[0]
   if (!d) return null
-  return { id: d.id, ...d.data() } as Business
+  return mapBusiness(d)
 }
 
 export async function getBusinessById(id: string): Promise<Business | null> {
   const snap = await getDoc(doc(db, 'businesses', id))
-  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Business) : null
+  return snap.exists() ? mapBusiness(snap) : null
 }
 
 export async function getBusinesses(opts: {
@@ -83,7 +108,7 @@ export async function getBusinesses(opts: {
 
   const snap = await getDocs(query(collection(db, 'businesses'), ...constraints))
   return {
-    businesses: snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Business),
+    businesses: snap.docs.map(mapBusiness),
     lastDoc: snap.docs[snap.docs.length - 1] ?? null,
   }
 }
