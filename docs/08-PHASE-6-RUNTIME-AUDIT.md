@@ -31,7 +31,7 @@ com.facebook.soloader.SoLoaderDSONotFoundError: couldn't find DSO to load: libre
   instalación NO falla (Android 14+ Play images anuncian traducción ARM), pero
   SoLoader busca `lib/x86_64/` dentro del APK, no existe, y el proceso muere en
   `Application.onCreate` — antes del primer frame JS. El “splash” que se ve es
-  la *starting window* del sistema; por eso parece que “carga y se cierra”.
+  la _starting window_ del sistema; por eso parece que “carga y se cierra”.
 - **Fix:** compilar con `-PreactNativeArchitectures=arm64-v8a,x86_64` (docs/07
   actualizado). En emulador instalar con `adb install --abi x86_64` (la imagen
   Android 16 ps16k a veces re-deriva el ABI primario a arm64 tras un reboot).
@@ -96,24 +96,24 @@ lo resuelve. RSS de la app ~260 MB: normal para RN + New Architecture.
 Inventario exhaustivo (grep de `addDoc|setDoc|updateDoc|deleteDoc|writeBatch|runTransaction`
 en `src/` y `app/` — todas las escrituras viven en `src/services/`):
 
-| # | Archivo | Colección | Operación | Campos escritos | Regla endurecida aplicable | Compatible |
-|---|---------|-----------|-----------|-----------------|----------------------------|------------|
-| 1 | services/auth.ts:28 `createUserDocument` | `users/{uid}` | setDoc (create) | id, email, displayName, photoURL, phone, bio, location, **role:'user'**, businessIds, favoriteIds, postCount, reviewCount, reputation:0, notifications, **isVerified:false**, **isBanned:false**, banReason, createdAt, lastSeen | create: uid propio ∧ role=='user' ∧ !isBanned ∧ !isVerified | ✅ |
-| 2 | services/auth.ts:25 (re-login) | `users/{uid}` | updateDoc | lastSeen | update propio, no toca bloqueados | ✅ |
-| 3 | services/firestore.ts:39 `updateUserProfile` | `users/{uid}` | updateDoc | displayName, phone, location, bio, notifications, updatedAt | no toca `role/isBanned/banReason/isVerified/reputation` | ✅ (verificado en dispositivo) |
-| 4 | services/firestore.ts:47 `linkBusinessToOwner` | `users/{uid}` | updateDoc | businessIds (arrayUnion) | campo no bloqueado | ✅ |
-| 5 | services/firestore.ts:276 `toggleFavorite` | `users/{uid}` | updateDoc | favoriteIds (arrayUnion/Remove) | campo no bloqueado | ✅ |
-| 6 | services/notifications.ts:37 `savePushToken` | `users/{uid}` | updateDoc | expoPushToken, lastSeen | campos no bloqueados | ✅ |
-| 7 | services/firestore.ts:97 `createBusiness` | `businesses` | addDoc | form + slug, ownerId, ownerName, contadores:0, **status:'pending'**, **isVerified:false**, **isFeatured:false**, plan:'free', featuredUntil:null, createdAt/updatedAt | create: ownerId==uid ∧ status=='pending' ∧ !isVerified ∧ !isFeatured | ✅ (= test «alice crea negocio propio en estado pending» de la suite web, PASS) |
-| 8 | services/firestore.ts:131 `updateBusiness` | `businesses/{id}` | updateDoc | campos del form / logo / coverImage / images + updatedAt | keepsLocked(ownerId, slug, status, isVerified, isFeatured, featuredUntil, plan, contadores, createdAt) — ninguno se toca | ✅ |
-| 9 | services/firestore.ts:189 `createPost` | `posts` | addDoc | form + ownerId, businessId, businessName/Slug/Logo, whatsapp, contadores:0, status:'active', createdAt/updatedAt | create: ownerId==uid ∧ get(business).ownerId==uid | ✅ |
-| 10 | services/firestore.ts:216 `updatePost` (editar) | `posts/{id}` | updateDoc | campos del form + updatedAt (status NO se toca) | keepsLocked + status igual | ✅ |
-| 11 | dashboard/posts/index.tsx:35 (eliminar) | `posts/{id}` | updateDoc | status:'deleted', updatedAt | status → 'deleted' permitido explícitamente | ✅ |
-| 12 | services/firestore.ts:248 `createReview` | `businesses/{bid}/reviews/{uid}` | runTransaction (get+set) | id doc == uid, userId==uid, rating (zod 1–5), comment, images, ownerReply:null, isHidden:false, reportCount:0, createdAt/updatedAt | create: rid==uid ∧ userId==uid ∧ rating 1..5 | ✅ |
-| 13 | services/admin.ts:20/24 | `users/{uid}` | updateDoc | role / isBanned | isAdmin() | ✅ (pantalla tras guard admin) |
-| 14 | services/admin.ts:36/40/44 | `businesses/{id}` | updateDoc | status / isFeatured / isVerified | isAdmin() | ✅ |
-| 15 | services/admin.ts:56 | `posts/{id}` | updateDoc | status | isAdmin() | ✅ |
-| 16 | services/storage.ts | Storage `businesses/{id}/…`, `posts/{id}/…` | upload | imágenes (picker quality 0.8) | signed-in ∧ image/* ∧ <5MB | ✅ (⚠ sin tope client-side de 5MB: P2) |
+| #   | Archivo                                         | Colección                                   | Operación                | Campos escritos                                                                                                                                                                                                                  | Regla endurecida aplicable                                                                                               | Compatible                                                                      |
+| --- | ----------------------------------------------- | ------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| 1   | services/auth.ts:28 `createUserDocument`        | `users/{uid}`                               | setDoc (create)          | id, email, displayName, photoURL, phone, bio, location, **role:'user'**, businessIds, favoriteIds, postCount, reviewCount, reputation:0, notifications, **isVerified:false**, **isBanned:false**, banReason, createdAt, lastSeen | create: uid propio ∧ role=='user' ∧ !isBanned ∧ !isVerified                                                              | ✅                                                                              |
+| 2   | services/auth.ts:25 (re-login)                  | `users/{uid}`                               | updateDoc                | lastSeen                                                                                                                                                                                                                         | update propio, no toca bloqueados                                                                                        | ✅                                                                              |
+| 3   | services/firestore.ts:39 `updateUserProfile`    | `users/{uid}`                               | updateDoc                | displayName, phone, location, bio, notifications, updatedAt                                                                                                                                                                      | no toca `role/isBanned/banReason/isVerified/reputation`                                                                  | ✅ (verificado en dispositivo)                                                  |
+| 4   | services/firestore.ts:47 `linkBusinessToOwner`  | `users/{uid}`                               | updateDoc                | businessIds (arrayUnion)                                                                                                                                                                                                         | campo no bloqueado                                                                                                       | ✅                                                                              |
+| 5   | services/firestore.ts:276 `toggleFavorite`      | `users/{uid}`                               | updateDoc                | favoriteIds (arrayUnion/Remove)                                                                                                                                                                                                  | campo no bloqueado                                                                                                       | ✅                                                                              |
+| 6   | services/notifications.ts:37 `savePushToken`    | `users/{uid}`                               | updateDoc                | expoPushToken, lastSeen                                                                                                                                                                                                          | campos no bloqueados                                                                                                     | ✅                                                                              |
+| 7   | services/firestore.ts:97 `createBusiness`       | `businesses`                                | addDoc                   | form + slug, ownerId, ownerName, contadores:0, **status:'pending'**, **isVerified:false**, **isFeatured:false**, plan:'free', featuredUntil:null, createdAt/updatedAt                                                            | create: ownerId==uid ∧ status=='pending' ∧ !isVerified ∧ !isFeatured                                                     | ✅ (= test «alice crea negocio propio en estado pending» de la suite web, PASS) |
+| 8   | services/firestore.ts:131 `updateBusiness`      | `businesses/{id}`                           | updateDoc                | campos del form / logo / coverImage / images + updatedAt                                                                                                                                                                         | keepsLocked(ownerId, slug, status, isVerified, isFeatured, featuredUntil, plan, contadores, createdAt) — ninguno se toca | ✅                                                                              |
+| 9   | services/firestore.ts:189 `createPost`          | `posts`                                     | addDoc                   | form + ownerId, businessId, businessName/Slug/Logo, whatsapp, contadores:0, status:'active', createdAt/updatedAt                                                                                                                 | create: ownerId==uid ∧ get(business).ownerId==uid                                                                        | ✅                                                                              |
+| 10  | services/firestore.ts:216 `updatePost` (editar) | `posts/{id}`                                | updateDoc                | campos del form + updatedAt (status NO se toca)                                                                                                                                                                                  | keepsLocked + status igual                                                                                               | ✅                                                                              |
+| 11  | dashboard/posts/index.tsx:35 (eliminar)         | `posts/{id}`                                | updateDoc                | status:'deleted', updatedAt                                                                                                                                                                                                      | status → 'deleted' permitido explícitamente                                                                              | ✅                                                                              |
+| 12  | services/firestore.ts:248 `createReview`        | `businesses/{bid}/reviews/{uid}`            | runTransaction (get+set) | id doc == uid, userId==uid, rating (zod 1–5), comment, images, ownerReply:null, isHidden:false, reportCount:0, createdAt/updatedAt                                                                                               | create: rid==uid ∧ userId==uid ∧ rating 1..5                                                                             | ✅                                                                              |
+| 13  | services/admin.ts:20/24                         | `users/{uid}`                               | updateDoc                | role / isBanned                                                                                                                                                                                                                  | isAdmin()                                                                                                                | ✅ (pantalla tras guard admin)                                                  |
+| 14  | services/admin.ts:36/40/44                      | `businesses/{id}`                           | updateDoc                | status / isFeatured / isVerified                                                                                                                                                                                                 | isAdmin()                                                                                                                | ✅                                                                              |
+| 15  | services/admin.ts:56                            | `posts/{id}`                                | updateDoc                | status                                                                                                                                                                                                                           | isAdmin()                                                                                                                | ✅                                                                              |
+| 16  | services/storage.ts                             | Storage `businesses/{id}/…`, `posts/{id}/…` | upload                   | imágenes (picker quality 0.8)                                                                                                                                                                                                    | signed-in ∧ image/\* ∧ <5MB                                                                                              | ✅ (⚠ sin tope client-side de 5MB: P2)                                          |
 
 **Veredicto: compatibilidad TOTAL.** Mobile no escribe `reports`, `categories`,
 `config` ni `users/*/notifications` (sólo lectura), no toca `ownerReply` ni
@@ -138,21 +138,21 @@ hardening de la web (#9) sigue sin merge/deploy. Hasta que se ejecute
 
 ## 3. Validación funcional ejecutada (APK release real, emulador, backend de producción)
 
-| Flujo | Resultado | Evidencia |
-|-------|-----------|-----------|
-| Arranque → Home | ✅ | screenshot; proceso vivo; `ReactNativeJS: Running "main"` |
-| Registro email (form completo) | ✅ | Firebase Auth crea cuenta; `users/{uid}` escrito y ACEPTADO por reglas; Perfil muestra «Kruzo Audit / Usuario» |
-| Persistencia de sesión | ✅ | force-stop + relaunch → sesión restaurada de AsyncStorage |
-| Race post-registro | 🐛→✅ | reproducido (Perfil «no logueado» hasta reiniciar); corregido con `refreshUser()` |
-| Login screen / navegación auth | ✅ | guards redirigen correctamente (deep links `kruzo://register`, `kruzo://profile`) |
-| Explorar (query businesses con índice compuesto) | ✅ | empty state limpio; colección vacía confirmada vía REST (no hay negocios en prod) |
-| Filtro por zona (BottomSheet) | 🐛→✅ | sheet no montaba en release; reescrito sobre RN Modal; «Zona: Centro» aplicado |
-| Dashboard como `role:'user'` | 🐛→✅ | antes rebotaba a Home; ahora abre («Hola, Kruzo 👋») |
-| Crear negocio (form completo + submit) | ⚠️ bloqueado por backend | payload correcto; `PERMISSION_DENIED` de las reglas VIEJAS de producción (exige entrepreneur). Con las reglas nuevas el caso equivalente es PASS en la suite del emulador web |
-| Guardar Configuración (updateUserProfile) | ✅ | `users/{uid}.updatedAt = 2026-06-11T17:43:40Z` visible vía REST |
-| Logout | ✅ (por código) | `signOut()+googleSignOut()`; sin condiciones para fallar; no probado en runtime |
-| Push token | ⚠️ esperado | «no EAS projectId yet — token registration skipped» (pendiente externo `eas init`, ya documentado en docs/07) |
-| Notificaciones (lectura) | ✅ (por código) | colección vacía (no hay emisor aún; igual que web) |
+| Flujo                                            | Resultado                | Evidencia                                                                                                                                                                     |
+| ------------------------------------------------ | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Arranque → Home                                  | ✅                       | screenshot; proceso vivo; `ReactNativeJS: Running "main"`                                                                                                                     |
+| Registro email (form completo)                   | ✅                       | Firebase Auth crea cuenta; `users/{uid}` escrito y ACEPTADO por reglas; Perfil muestra «Kruzo Audit / Usuario»                                                                |
+| Persistencia de sesión                           | ✅                       | force-stop + relaunch → sesión restaurada de AsyncStorage                                                                                                                     |
+| Race post-registro                               | 🐛→✅                    | reproducido (Perfil «no logueado» hasta reiniciar); corregido con `refreshUser()`                                                                                             |
+| Login screen / navegación auth                   | ✅                       | guards redirigen correctamente (deep links `kruzo://register`, `kruzo://profile`)                                                                                             |
+| Explorar (query businesses con índice compuesto) | ✅                       | empty state limpio; colección vacía confirmada vía REST (no hay negocios en prod)                                                                                             |
+| Filtro por zona (BottomSheet)                    | 🐛→✅                    | sheet no montaba en release; reescrito sobre RN Modal; «Zona: Centro» aplicado                                                                                                |
+| Dashboard como `role:'user'`                     | 🐛→✅                    | antes rebotaba a Home; ahora abre («Hola, Kruzo 👋»)                                                                                                                          |
+| Crear negocio (form completo + submit)           | ⚠️ bloqueado por backend | payload correcto; `PERMISSION_DENIED` de las reglas VIEJAS de producción (exige entrepreneur). Con las reglas nuevas el caso equivalente es PASS en la suite del emulador web |
+| Guardar Configuración (updateUserProfile)        | ✅                       | `users/{uid}.updatedAt = 2026-06-11T17:43:40Z` visible vía REST                                                                                                               |
+| Logout                                           | ✅ (por código)          | `signOut()+googleSignOut()`; sin condiciones para fallar; no probado en runtime                                                                                               |
+| Push token                                       | ⚠️ esperado              | «no EAS projectId yet — token registration skipped» (pendiente externo `eas init`, ya documentado en docs/07)                                                                 |
+| Notificaciones (lectura)                         | ✅ (por código)          | colección vacía (no hay emisor aún; igual que web)                                                                                                                            |
 
 Cuenta de prueba creada en producción: `audit.kruzo.qa.20260611@gmail.com`
 (uid `xsvdKZb2KKMWl96E62r77M8epYr1`, role user, sin contenido). Puede borrarse
@@ -162,17 +162,17 @@ desde la consola Firebase si se desea.
 
 ## 4. Hallazgos restantes (no corregidos aquí; priorizados)
 
-| Prioridad | Hallazgo | Detalle |
-|----------|----------|---------|
-| P0 (externo) | **Deploy pendiente de rules+functions** | Sin él, nadie puede crear su primer negocio en ningún cliente. `firebase deploy --only firestore:rules,functions` tras merge del PR web #9 |
-| P1 | Sin eliminación de cuenta en mobile | La web la hace vía `DELETE /api/account` (cookie de sesión + Admin SDK); mobile no tiene equivalente. Play exige opción de borrado de cuenta para apps con registro. Requiere una Cloud Function callable |
-| P1 | Release firmado con debug keystore | Ya documentado en docs/07; bloquea publicación real |
-| P2 | Imágenes sin tope client-side de 5MB | storage.rules rechaza >5MB con error opaco; picker usa quality 0.8 (mitiga). Añadir validación de tamaño + mensaje |
-| P2 | `ROLE_META[user.role]` sin fallback en perfil | role inesperado/ausente → TypeError. Defensivo pendiente |
-| P2 | `business.rating.toFixed(1)` sin guard en dashboard/reviews | rating undefined en docs legados → crash de pantalla |
-| P2 | Usuarios baneados no bloqueados en cliente | mobile no comprueba `isBanned` al iniciar sesión (las reglas tampoco lo hacen server-side fuera de create) |
-| P3 | Sin crear reportes desde mobile (admin sólo lee), sin editar/borrar review propia, sin marcar notificaciones leídas | gaps funcionales menores vs web |
-| P3 | `@gorhom/bottom-sheet` queda como dependencia instalada sin uso | retirarla de package.json en una pasada de limpieza (no se hizo aquí para mantener el diff mínimo) |
+| Prioridad    | Hallazgo                                                                                                            | Detalle                                                                                                                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P0 (externo) | **Deploy pendiente de rules+functions**                                                                             | Sin él, nadie puede crear su primer negocio en ningún cliente. `firebase deploy --only firestore:rules,functions` tras merge del PR web #9                                                                |
+| P1           | Sin eliminación de cuenta en mobile                                                                                 | La web la hace vía `DELETE /api/account` (cookie de sesión + Admin SDK); mobile no tiene equivalente. Play exige opción de borrado de cuenta para apps con registro. Requiere una Cloud Function callable |
+| P1           | Release firmado con debug keystore                                                                                  | Ya documentado en docs/07; bloquea publicación real                                                                                                                                                       |
+| P2           | Imágenes sin tope client-side de 5MB                                                                                | storage.rules rechaza >5MB con error opaco; picker usa quality 0.8 (mitiga). Añadir validación de tamaño + mensaje                                                                                        |
+| P2           | `ROLE_META[user.role]` sin fallback en perfil                                                                       | role inesperado/ausente → TypeError. Defensivo pendiente                                                                                                                                                  |
+| P2           | `business.rating.toFixed(1)` sin guard en dashboard/reviews                                                         | rating undefined en docs legados → crash de pantalla                                                                                                                                                      |
+| P2           | Usuarios baneados no bloqueados en cliente                                                                          | mobile no comprueba `isBanned` al iniciar sesión (las reglas tampoco lo hacen server-side fuera de create)                                                                                                |
+| P3           | Sin crear reportes desde mobile (admin sólo lee), sin editar/borrar review propia, sin marcar notificaciones leídas | gaps funcionales menores vs web                                                                                                                                                                           |
+| P3           | `@gorhom/bottom-sheet` queda como dependencia instalada sin uso                                                     | retirarla de package.json en una pasada de limpieza (no se hizo aquí para mantener el diff mínimo)                                                                                                        |
 
 ### Notas UX/Performance (Fases 6–7)
 
@@ -192,12 +192,12 @@ desde la consola Firebase si se desea.
 
 ## 5. Commits de esta fase
 
-| Commit | Contenido |
-|--------|-----------|
-| `4c5bdb1` | fix(android): hoist expo-asset/file-system/font/keep-awake → autolinking los registra (crash #2) |
+| Commit    | Contenido                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------- |
+| `4c5bdb1` | fix(android): hoist expo-asset/file-system/font/keep-awake → autolinking los registra (crash #2)  |
 | `c87e6e0` | fix(auth): guard del dashboard a paridad web (`protected`) + `refreshUser()` post-registro/Google |
-| `53d24b8` | fix(ui): BottomSheet sobre RN Modal (gorhom no monta en release) |
-| `(docs)`  | docs/07 comando de build corregido + este informe |
+| `53d24b8` | fix(ui): BottomSheet sobre RN Modal (gorhom no monta en release)                                  |
+| `(docs)`  | docs/07 comando de build corregido + este informe                                                 |
 
 QA final: `tsc --noEmit` ✅ · `eslint .` ✅ · `jest` 13/13 ✅ ·
 `assembleRelease (arm64-v8a,x86_64)` ✅ →

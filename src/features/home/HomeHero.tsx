@@ -39,9 +39,18 @@ export function HomeHero() {
         style={styles.cta}
       />
 
-      <View style={[styles.stats, { borderTopColor: theme.colors.border }]}>
-        {STATS.map((s) => (
-          <View key={s.label} style={styles.stat}>
+      <View style={[styles.stats, { backgroundColor: theme.colors.muted }]}>
+        {STATS.map((s, i) => (
+          <View
+            key={s.label}
+            style={[
+              styles.stat,
+              i > 0 && {
+                borderLeftWidth: StyleSheet.hairlineWidth,
+                borderLeftColor: theme.colors.border,
+              },
+            ]}
+          >
             <s.icon size={14} color={theme.colors.primary} />
             <Text style={[styles.statValue, { color: theme.colors.foreground }]}>{s.value}</Text>
             <Text style={[styles.statLabel, { color: theme.colors.mutedForeground }]}>
@@ -71,13 +80,12 @@ const styles = StyleSheet.create({
   cta: { marginTop: 20, alignSelf: 'stretch' },
   stats: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignSelf: 'stretch',
     marginTop: 24,
-    paddingTop: 18,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 16,
+    borderRadius: 18,
   },
-  stat: { alignItems: 'center', gap: 3 },
+  stat: { flex: 1, alignItems: 'center', gap: 3 },
   statValue: { fontSize: 18, fontWeight: '800' },
   statLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 },
 })

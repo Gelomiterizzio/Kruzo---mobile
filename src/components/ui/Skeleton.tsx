@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
-import { type DimensionValue, type LayoutChangeEvent, type StyleProp, type ViewStyle } from 'react-native'
+import {
+  type DimensionValue,
+  type LayoutChangeEvent,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,

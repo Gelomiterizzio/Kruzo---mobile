@@ -180,7 +180,7 @@ eas submit --profile production --platform android --latest
 ```
 
 **Play App Signing:** al crear la app en Play Console, deja que Google gestione la
-clave de firma de la app y entrega tu *upload key* (la de EAS). Tras el primer
+clave de firma de la app y entrega tu _upload key_ (la de EAS). Tras el primer
 upload, registra el **SHA-1/SHA-256 de la clave de firma de Play** en:
 
 - el cliente **OAuth Android** de Google Cloud (Sign-In en builds de tienda),

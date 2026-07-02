@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { FlatList, View, Text, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
@@ -6,7 +7,7 @@ import { Header } from '@/components/layout/Header'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/feedback/EmptyState'
 import { LoadingState } from '@/components/feedback/LoadingState'
-import { getNotifications } from '@/services/notifications'
+import { getNotifications, markNotificationsRead } from '@/services/notifications'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/providers/ThemeProvider'
 import { formatRelativeTime } from '@/utils/formatters'
@@ -21,6 +22,15 @@ export default function NotificationsScreen() {
     enabled: isAuthenticated && !!user,
     queryFn: async () => (user ? await getNotifications(user.id) : []),
   })
+
+  // Web parity: viewing the list marks everything as read (batch write allowed by
+  // rules). The unread highlight stays for THIS visit — the cached list isn't
+  // touched — and is gone on the next one. Fire-and-forget; failing is harmless.
+  useEffect(() => {
+    if (user && data?.some((n) => !n.read)) {
+      void markNotificationsRead(user.id, data).catch(() => {})
+    }
+  }, [user, data])
 
   if (!isAuthenticated) {
     return (

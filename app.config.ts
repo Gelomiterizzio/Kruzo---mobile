@@ -54,8 +54,14 @@ const config: ExpoConfig = {
       },
     },
     // Camera/media/location/notification permissions are declared by the
-    // respective config plugins below. Block the ones we never use.
-    blockedPermissions: ['android.permission.RECORD_AUDIO'],
+    // respective config plugins below. Block the ones we never use:
+    //  - RECORD_AUDIO: no audio features.
+    //  - SYSTEM_ALERT_WINDOW: injected by the Expo/RN template for the dev
+    //    LogBox overlay; unused in release and flagged as sensitive by Play.
+    blockedPermissions: [
+      'android.permission.RECORD_AUDIO',
+      'android.permission.SYSTEM_ALERT_WINDOW',
+    ],
     // Android App Links: open kruzo.bo deep links in the app (autoVerify needs a
     // /.well-known/assetlinks.json on the domain). Custom scheme `kruzo://` also
     // works out of the box for business/post/user routes.

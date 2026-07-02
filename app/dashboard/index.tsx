@@ -11,6 +11,7 @@ import {
   Plus,
   TrendingUp,
   Settings,
+  ChevronRight,
 } from 'lucide-react-native'
 import { Screen } from '@/components/layout/Screen'
 import { Header } from '@/components/layout/Header'
@@ -134,7 +135,9 @@ export default function DashboardHomeScreen() {
         <View style={styles.actions}>
           {actions.map(({ icon: Icon, label, desc, to }) => (
             <Card key={label} onPress={() => router.push(to)} style={styles.actionCard}>
-              <Icon size={20} color={theme.colors.primary} />
+              <View style={[styles.actionIcon, { backgroundColor: theme.colors.primary + '14' }]}>
+                <Icon size={18} color={theme.colors.primary} />
+              </View>
               <View style={styles.actionMeta}>
                 <Text style={[styles.actionLabel, { color: theme.colors.foreground }]}>
                   {label}
@@ -143,6 +146,7 @@ export default function DashboardHomeScreen() {
                   {desc}
                 </Text>
               </View>
+              <ChevronRight size={18} color={theme.colors.mutedForeground} />
             </Card>
           ))}
         </View>
@@ -179,6 +183,13 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12 },
   actions: { gap: 10, marginTop: 8 },
   actionCard: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  actionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   actionMeta: { flex: 1 },
   actionLabel: { fontSize: 14, fontWeight: '600' },
   actionDesc: { fontSize: 12, marginTop: 1 },

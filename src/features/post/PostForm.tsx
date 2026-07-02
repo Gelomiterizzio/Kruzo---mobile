@@ -113,9 +113,7 @@ export function PostForm({ business, existing }: { business: Business; existing?
       }
       router.replace('/dashboard/posts')
     } catch (e) {
-      toast.error(
-        e instanceof ImageTooLargeError ? e.message : 'Error al guardar publicación',
-      )
+      toast.error(e instanceof ImageTooLargeError ? e.message : 'Error al guardar publicación')
     } finally {
       setSaving(false)
     }
