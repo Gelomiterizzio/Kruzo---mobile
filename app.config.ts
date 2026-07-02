@@ -102,13 +102,6 @@ const config: ExpoConfig = {
       },
     ],
     [
-      'expo-location',
-      {
-        locationWhenInUsePermission:
-          'KRUZO usa tu ubicación para mostrarte negocios y servicios cercanos en Santa Cruz.',
-      },
-    ],
-    [
       'expo-notifications',
       {
         color: '#ff4500',

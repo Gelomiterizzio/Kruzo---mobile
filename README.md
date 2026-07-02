@@ -118,6 +118,9 @@ parciales.
   config Firebase pública por diseño; env validado al arranque.
 - Eliminación de cuenta vía Cloud Function privilegiada (Admin SDK), validada E2E
   contra producción.
+- **Privacidad:** la app no solicita ubicación, no incluye analítica ni anuncios.
+  Política oficial: [docs/PRIVACY_POLICY.md](docs/PRIVACY_POLICY.md) (publicada en
+  `kruzo.bo/privacy`).
 
 ## Release / Publicación
 
@@ -142,3 +145,4 @@ parciales.
 | [07](docs/07-RELEASE.md)                                                            | Release engineering                                                  |
 | [08](docs/08-PHASE-6-RUNTIME-AUDIT.md)                                              | Auditoría runtime (causas raíz del crash del APK) + matriz de reglas |
 | [09](docs/09-PHASE-9-GO-LIVE.md)                                                    | **Go-live: checklist, riesgos y manual de publicación**              |
+| [PRIVACY_POLICY](docs/PRIVACY_POLICY.md)                                            | Política de privacidad oficial + mapeo a Data Safety                 |
