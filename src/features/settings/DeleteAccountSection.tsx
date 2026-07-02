@@ -62,7 +62,13 @@ export function DeleteAccountSection() {
 }
 
 const styles = StyleSheet.create({
-  zone: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 16, gap: 10, marginTop: 8 },
+  zone: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 16,
+    padding: 16,
+    gap: 10,
+    marginTop: 8,
+  },
   title: { fontSize: 15, fontWeight: '800' },
   body: { fontSize: 13, lineHeight: 18 },
 })

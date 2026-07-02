@@ -158,6 +158,27 @@ export async function updateBusiness(id: string, data: Partial<Business>) {
 
 // ─── POSTS ──────────────────────────────────────────────────────────────────
 
+// Same defensive normalization as mapBusiness: a partial/legacy post doc (e.g.
+// written via the Admin SDK) must not crash render sites that call
+// `.map`/`[0]`/`.toFixed` on counters, images or tags.
+export function mapPost(snap: DocumentSnapshot): Post {
+  const d = (snap.data() ?? {}) as Record<string, unknown>
+  const num = (v: unknown) => (typeof v === 'number' && !Number.isNaN(v) ? v : 0)
+  const arr = (v: unknown) => (Array.isArray(v) ? v : [])
+  return {
+    ...d,
+    id: snap.id,
+    price: num(d.price),
+    deliveryPrice: num(d.deliveryPrice),
+    viewCount: num(d.viewCount),
+    likeCount: num(d.likeCount),
+    commentCount: num(d.commentCount),
+    shareCount: num(d.shareCount),
+    images: arr(d.images),
+    tags: arr(d.tags),
+  } as Post
+}
+
 export async function getPostsByBusiness(
   businessId: string,
   pageSize = 12,
@@ -172,7 +193,7 @@ export async function getPostsByBusiness(
   if (cursor) constraints.push(startAfter(cursor))
   const snap = await getDocs(query(collection(db, 'posts'), ...constraints))
   return {
-    posts: snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Post),
+    posts: snap.docs.map(mapPost),
     lastDoc: snap.docs[snap.docs.length - 1] ?? null,
   }
 }
@@ -192,14 +213,14 @@ export async function getPosts(opts: {
   if (cursor) constraints.push(startAfter(cursor))
   const snap = await getDocs(query(collection(db, 'posts'), ...constraints))
   return {
-    posts: snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Post),
+    posts: snap.docs.map(mapPost),
     lastDoc: snap.docs[snap.docs.length - 1] ?? null,
   }
 }
 
 export async function getPostById(id: string): Promise<Post | null> {
   const snap = await getDoc(doc(db, 'posts', id))
-  return snap.exists() ? ({ id: snap.id, ...snap.data() } as Post) : null
+  return snap.exists() ? mapPost(snap) : null
 }
 
 export async function createPost(

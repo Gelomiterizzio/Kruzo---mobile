@@ -169,7 +169,9 @@ export function BusinessProfile({ business }: { business: Business }) {
             label={fav ? 'Guardado' : 'Guardar'}
             variant="outline"
             size="sm"
-            leftIcon={<AnimatedHeart active={fav} size={15} inactiveColor={theme.colors.foreground} />}
+            leftIcon={
+              <AnimatedHeart active={fav} size={15} inactiveColor={theme.colors.foreground} />
+            }
             onPress={onFavorite}
             style={styles.ctaBtn}
           />

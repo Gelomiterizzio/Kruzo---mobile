@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ScrollView, View, Text, StyleSheet } from 'react-native'
+import { Redirect } from 'expo-router'
 import { Heart, Plus, Search as SearchIcon } from 'lucide-react-native'
 import { Screen } from '@/components/layout/Screen'
 import {
@@ -52,6 +53,10 @@ export default function DesignSystemScreen() {
   const [rating, setRating] = useState(4)
   const [modal, setModal] = useState(false)
   const [sheet, setSheet] = useState(false)
+
+  // Dev/QA-only route: in release builds redirect home so the internal catalog
+  // (mock data included) is never reachable by end users or deep links.
+  if (!__DEV__) return <Redirect href="/" />
 
   const label = { color: theme.colors.mutedForeground, fontSize: 12, fontWeight: '600' as const }
 

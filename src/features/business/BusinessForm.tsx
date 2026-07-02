@@ -121,7 +121,9 @@ export function BusinessForm({ existing }: { existing?: Business }) {
       router.replace('/dashboard/business')
     } catch (e) {
       toast.error(
-        e instanceof ImageTooLargeError ? e.message : 'Error al guardar negocio. Inténtalo de nuevo.',
+        e instanceof ImageTooLargeError
+          ? e.message
+          : 'Error al guardar negocio. Inténtalo de nuevo.',
       )
     } finally {
       setSaving(false)
